@@ -1,0 +1,30 @@
+{
+  "server": {
+    "host": "0.0.0.0",
+    "port": 8010,
+    "path": "/platform"
+  },
+  "ETH": {
+    "gethSupportedTypes": ["ipc", "ws"],
+    "gethProviderType":"ipc",
+    "gethProviderSource":"/Users/mkapravchuk/ipc/geth.ipc",
+    "sufficientConfirmations": 5,
+    "gasPrice": "80000000000",
+
+    "contractOwnerPassword": "test",
+    "AccountAddress": {
+      "contractsOwner": "0x0a4f8f93b09ecde970e6ab746e9fd88f2c44bc0d",
+      "platformReserve": "0x2a211a8be4857ea78f758a3f8df43245d527e402",
+      "gameDeveloper": "0x98584cee5ae5b229c790fb2cdae6c0898ac1b6a1"
+    },
+    "ContractAddress": {
+      "joyToken": "0xf71108f6825420861cc42c1bb184de52cc2a2f70",
+      "deposit": "0xcf71db3f6c7ba3dacef09de3245afe475333b100",
+      "demoGame": "0xd1a828f58e4985ceac6f48eb770460bfcd9c6673",
+      "subscription" : {
+        "ether" : "0xE29e3Fc602eb77DB6cc833EE8FC4A610f9f69141",
+        "joyToken" : "0x5Cd8942dfceB0E45e90246cBBAedb24534c56068"
+      }
+    }
+  }
+}

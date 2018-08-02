@@ -1,0 +1,2 @@
+export const RESPONSE_STATUS_SUCCESS = 0;
+export const RESPONSE_STATUS_ERROR = 1;
