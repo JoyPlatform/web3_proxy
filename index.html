@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Client for Proxy</title>
+</head>
+<body>
+
+<p><input placeholder="Command" size="100" width="200px"/></p>
+<p><button onclick="send()">Send</button></p>
+
+<script>
+
+    const wsclient = new WebSocket(`ws://localhost:8010/platform`);
+
+    wsclient.onopen = open;
+    wsclient.onerror = error;
+    wsclient.onmessage = message;
+    wsclient.onclose = close;
+
+    function open() {
+
+    }
+
+    function error() {
+
+    }
+
+    function message(response) {
+
+    }
+
+    function close() {
+
+    }
+
+
+    function send() {
+
+        const request = {
+            command: document.querySelector('input').value
+        };
+
+
+        try {
+            wsclient.send(JSON.stringify(request));
+        } catch (e) {
+
+        }
+    }
+
+</script>
+</body>
+</html>
