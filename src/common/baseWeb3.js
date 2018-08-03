@@ -9,35 +9,36 @@ const CONNECTION_ERRORS = [IPC_CONNECTION_CLOSED, IPC_COULD_NOT_CONNECT];
 
 let webServices = null;
 let transactionsList = [];
-let initConnection = false;
 const { sufficientConfirmations } = ETHConfiguration;
 
 export default class BaseWeb3 {
 
     constructor() {
         this.connectionStatus = false;
-        this.initWeb3Services();
     }
 
     initWeb3Services() {
+        return new Promise((resolve) => {
+           this.connectToIPC(resolve);
+        });
+    }
+
+    connectToIPC(resolve) {
         webServices = new Web3Service();
 
         const subscription = this.eth.subscribe('newBlockHeaders', (error, data) => {
             if (!error) {
-                if (!initConnection) {
-                    initConnection = true;
-                    EventBus.emit('Web3InitEventListeners');
-                }
+                resolve();
                 EventBus.emit('Web3ConnectionStatus', true);
                 this.checkTransactions(data);
                 this.updateTransactions();
             } else {
-                this.connectionErrorHandling(subscription, error.toString());
+                this.connectionErrorHandling(subscription, error.toString(), resolve);
             }
         });
     }
 
-    connectionErrorHandling(subscription, error) {
+    connectionErrorHandling(subscription, error, resolve) {
         if (CONNECTION_ERRORS.values(error)) {
             EventBus.emit('Web3ConnectionStatus', false);
             if (IPC_COULD_NOT_CONNECT === error) {
@@ -47,7 +48,7 @@ export default class BaseWeb3 {
                             console.log('Successfully unsubscribed!');
                         }
                     });
-                    this.initWeb3Services();
+                    this.connectToIPC(resolve);
                 }, 5000);
             }
         }

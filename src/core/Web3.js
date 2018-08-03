@@ -8,7 +8,12 @@ export default class Web3 extends BaseWeb3 {
 
     constructor() {
         super();
+        this.initialize();
+    }
 
+    async initialize() {
+        await this.initWeb3Services();
+        this.initComponents();
         this.initEventListeners();
     }
 
@@ -27,16 +32,11 @@ export default class Web3 extends BaseWeb3 {
             }
         });
 
-        EventBus.on('Web3InitEventListeners', () => {
-            this.initComponents();
-            EventBus.on('Web3Authentication', this.authComponent::this.authComponent.isAddressExist);
-            EventBus.on('Web3Balances', this.balanceComponent::this.balanceComponent.getBalances);
-            EventBus.on('Web3GetConfigurationData', this.configurationController::this.configurationController.getBaseConfiguration);
-            EventBus.on('Web3GetTransfersInProgress', this.transferComponent::this.transferComponent.getTransfersInProgress);
-        });
+        EventBus.on('Web3Authentication', this.authComponent::this.authComponent.isAddressExist);
+        EventBus.on('Web3Balances', this.balanceComponent::this.balanceComponent.getBalances);
+        EventBus.on('Web3GetConfigurationData', this.configurationController::this.configurationController.getBaseConfiguration);
+        EventBus.on('Web3GetTransfersInProgress', this.transferComponent::this.transferComponent.getTransfersInProgress);
 
-        // EventBus.on('Web3RegisterTransfersToClient', this.transferComponent::this.transferComponent.registerTransfersToClient);
-        // EventBus.on('executeWeb3Module', ::this.executeBaseComponent);
     }
 
     executeEmitCallback(event, data) {
@@ -49,10 +49,6 @@ export default class Web3 extends BaseWeb3 {
 
     sendResponseToClients(response) {
         EventBus.emit('sendResponseToClients', response);
-    }
-
-    executeWalletComponent(data) {
-        EventBus.emit('startGameSession', {data});
     }
 
 }
