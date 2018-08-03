@@ -8,7 +8,7 @@ export default class Web3 extends BaseWeb3 {
 
     constructor() {
         super();
-        this.initComponents();
+
         this.initEventListeners();
     }
 
@@ -26,10 +26,15 @@ export default class Web3 extends BaseWeb3 {
                 console.info('SEND TO ALL CLIENTS NEW CONNECTION STATUS', connectionStatus);
             }
         });
-        EventBus.on('Web3Authentication', this.authComponent::this.authComponent.isAddressExist);
-        EventBus.on('Web3Balances', this.balanceComponent::this.balanceComponent.getBalances);
-        EventBus.on('Web3GetConfigurationData', this.configurationController::this.configurationController.getBaseConfiguration);
-        EventBus.on('Web3GetTransfersInProgress', this.transferComponent::this.transferComponent.getTransfersInProgress);
+
+        EventBus.on('Web3InitEventListeners', () => {
+            this.initComponents();
+            EventBus.on('Web3Authentication', this.authComponent::this.authComponent.isAddressExist);
+            EventBus.on('Web3Balances', this.balanceComponent::this.balanceComponent.getBalances);
+            EventBus.on('Web3GetConfigurationData', this.configurationController::this.configurationController.getBaseConfiguration);
+            EventBus.on('Web3GetTransfersInProgress', this.transferComponent::this.transferComponent.getTransfersInProgress);
+        });
+
         // EventBus.on('Web3RegisterTransfersToClient', this.transferComponent::this.transferComponent.registerTransfersToClient);
         // EventBus.on('executeWeb3Module', ::this.executeBaseComponent);
     }

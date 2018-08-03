@@ -9,6 +9,7 @@ const CONNECTION_ERRORS = [IPC_CONNECTION_CLOSED, IPC_COULD_NOT_CONNECT];
 
 let webServices = null;
 let transactionsList = [];
+let initConnection = false;
 const { sufficientConfirmations } = ETHConfiguration;
 
 export default class BaseWeb3 {
@@ -23,6 +24,10 @@ export default class BaseWeb3 {
 
         const subscription = this.eth.subscribe('newBlockHeaders', (error, data) => {
             if (!error) {
+                if (!initConnection) {
+                    initConnection = true;
+                    EventBus.emit('Web3InitEventListeners');
+                }
                 EventBus.emit('Web3ConnectionStatus', true);
                 this.checkTransactions(data);
                 this.updateTransactions();
