@@ -43,6 +43,7 @@ export default class WebSocketServer {
     connection(wsclient) {
 
         this.wsclients.push(wsclient);
+        wsclient.userIds = [];
         wsclient.removeFromArray = (wsclient) => {
             const clientIndex = this.wsclients.indexOf(wsclient);
             if (~clientIndex) {
@@ -60,7 +61,7 @@ export default class WebSocketServer {
                 const { command } = request;
                 const response = {wsclient: this, data: {command: `${command}_Res`, status: RESPONSE_STATUS_ERROR}};
 
-                _.set(request, 'data.clientId', this.id || 0);
+                // _.set(request, 'data.clientId', this.id || 0);
                 EventBus.emit('onMessage', request, response);
             } else {
                 const errorResponse = {status: RESPONSE_STATUS_ERROR, error: ERROR_INAPPROPRIATE_REQUEST_MESSAGE_FORMAT, requested: clientRequest};

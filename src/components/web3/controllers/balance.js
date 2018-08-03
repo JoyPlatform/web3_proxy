@@ -13,6 +13,7 @@ export default class BalanceComponent {
     }
 
     async getBalances({request, response}) {
+        const { userId } = request;
         const balances = await this.getAllBalances(request);
 
         if (_.find(balances, (balance) => {return balance.error;})) {
@@ -21,17 +22,17 @@ export default class BalanceComponent {
             response.data.status = RESPONSE_STATUS_SUCCESS;
         }
 
-        response.data.response = balances;
+        response.data.response = { balances, userId } ;
 
         module.sendResponseToClient(response);
     }
 
-    getAllBalances({balances, clientId}) {
+    getAllBalances({balances, userId}) {
 
         const promises = [];
         balances.forEach(({currency, locations}) => {
             locations.forEach((location) => {
-                const promise = this.getCurrencyBalance({location, currency, clientId});
+                const promise = this.getCurrencyBalance({location, currency, userId});
 
                 promise && promises.push(promise);
             });
@@ -40,14 +41,14 @@ export default class BalanceComponent {
         return Promise.all(promises);
     }
 
-    getCurrencyBalance({location, currency, clientId}) {
+    getCurrencyBalance({location, currency, userId}) {
         switch (location) {
             case 'world':
-                return this.getWorldBalance({currency, address: clientId, location});
+                return this.getWorldBalance({currency, address: userId, location});
             case 'platform':
-                return this.getPlatformBalance({currency, address: clientId, location});
+                return this.getPlatformBalance({currency, address: userId, location});
             case 'gameSession':
-                return this.getGameSessionBalance({currency, address: clientId, location});
+                return this.getGameSessionBalance({currency, address: userId, location});
             default:
                 return new Promise((resolve) => {
                     resolve(getETHBalanceLocationDoesNotExistResponse({currency, location}));

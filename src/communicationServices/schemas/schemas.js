@@ -42,7 +42,7 @@ export const getBalancesSchema = {
         },
         'data': {
             'type': 'object',
-            'required': [ 'balances' ],
+            'required': [ 'balances', 'userId' ],
             'properties': {
                 'balances': {
                     'type': 'array',
@@ -70,6 +70,9 @@ export const getBalancesSchema = {
 
                         ]
                     }
+                },
+                'userId': {
+                    'type': 'string'
                 }
             }
         }
@@ -83,6 +86,33 @@ export const getEmptyDataSchema = {
     'properties': {
         'command': {
             'type': 'string'
+        }
+    }
+};
+
+export const addUsers = {
+    '$id': 'addUsers',
+    'type': 'object',
+    'required': [ 'command', 'data' ],
+    'properties': {
+        'command': {
+            'type': 'string'
+        },
+        'data': {
+            'required': [ 'userIds' ],
+            'type': 'object',
+            'properties': {
+                'userIds': {
+                    'type': 'array',
+                    'items': {
+                        'allOf': [
+                            {
+                                'type': 'string'
+                            }
+                        ]
+                    }
+                }
+            }
         }
     }
 };
