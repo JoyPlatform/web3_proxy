@@ -26,7 +26,7 @@ export default class ConfigurationController {
             demoGameAddress: getGameAddress(),
             subscriptionEtherAddress: getSubscriptionEtherAddress(),
             subscriptionJoyTokenAddress: getSubscriptionJoyTokenAddress(),
-            // ABIs
+
             joyTokenABI: getJoyTokenABI(),
             depositABI: getDepositABI(),
             demoGameABI: getGameABI(),
