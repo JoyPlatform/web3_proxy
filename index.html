@@ -6,17 +6,22 @@
 </head>
 <body>
 
-<p><input placeholder="Command" size="100" width="200px"/></p>
+<p><input id="command" placeholder="Command" size="100" width="200px"/></p>
+<p><input id="data" placeholder="data" size="100" width="200px"/></p>
 <p><button onclick="send()">Send</button></p>
 
 <script>
 
-    const wsclient = new WebSocket(`ws://localhost:8010/platform`);
+    let wsclient = null;
 
-    wsclient.onopen = open;
-    wsclient.onerror = error;
-    wsclient.onmessage = message;
-    wsclient.onclose = close;
+    setupConnection();
+    function setupConnection() {
+        wsclient = new WebSocket(`ws://localhost:8010/platform`);
+        wsclient.onopen = open;
+        wsclient.onerror = error;
+        wsclient.onmessage = message;
+        wsclient.onclose = close;
+    }
 
     function open() {
 
@@ -31,14 +36,15 @@
     }
 
     function close() {
-
+        setTimeout(setupConnection, 3000);
     }
 
 
     function send() {
 
         const request = {
-            command: document.querySelector('input').value
+            command: document.querySelector('#command').value,
+            data: JSON.parse(document.querySelector('#data').value)
         };
 
 

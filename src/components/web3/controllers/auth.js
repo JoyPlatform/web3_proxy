@@ -12,8 +12,7 @@ export default class AuthComponent {
         const { userId } = request;
 
         response.userExist = module.utils.isAddress(userId);
-        response.clientId = userId;
-        response.data.response = {clientId: userId};
+        response.data.response = {userId, exist: response.userExist};
         response.data.status = RESPONSE_STATUS_SUCCESS;
         if (callbackEmit) {
             module.executeEmitCallback(callbackEmit, response);

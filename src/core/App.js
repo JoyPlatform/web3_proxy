@@ -4,6 +4,7 @@ import web3MessagesHandler from 'messagesHandlers/web3MessagesHandler';
 import BaseApp from 'common/baseApp';
 import { MODULE_CLIENT, MODULE_WEB3 } from 'constants/modules';
 import { getAppIncorrectCommandResponse } from 'components/app/responses/';
+import { RESPONSE_STATUS_SUCCESS } from 'constants/messageStatuses';
 
 export default class App extends BaseApp {
 
@@ -16,10 +17,20 @@ export default class App extends BaseApp {
     initEventListeners() {
         EventBus.on('onMessage', ::this.messageHandlerFactory);
         EventBus.on('incorrectRequestedCommand', ::this.incorrectRequestedCommandHandler);
-        EventBus.on('authUserVerification', ::this.authUserVerification);
         EventBus.on('updateClientData', ::this.updateClientData);
         EventBus.on('sendResponseToClient', ::this.sendResponseToClient);
         EventBus.on('sendResponseToClients', ::this.sendResponseToClients);
+        EventBus.on('addUsersToClient', ::this.addUsersToClient);
+        EventBus.on('addUserToClient', ::this.addUserToClient);
+    }
+
+    addUsersToClient({request, response}) {
+        const { userIds } = request;
+        const { wsclient, data } = response;
+
+        this.updateClientData({wsclient: wsclient, key: 'userIds', value: userIds});
+        data.status = RESPONSE_STATUS_SUCCESS;
+        this.sendResponseToClient(response);
     }
 
     incorrectRequestedCommandHandler({response, command}) {
@@ -27,13 +38,14 @@ export default class App extends BaseApp {
         this.sendResponseToClient(response);
     }
 
-    authUserVerification(response) {
-        const { clientId } = response;
+    addUserToClient(response) {
+        const { wsclient, data, userExist } = response;
 
-        if (response.userExist) {
-            this.updateClientData({wsclient: response.wsclient, key: 'id', value: clientId});
-            this.sendResponseToClient(response);
+        if (userExist && !wsclient.userIds.includes(data.userId)) {
+            wsclient.userIds.push(data.userId);
         }
+
+        this.sendResponseToClient(response);
     }
 
     messageHandlerFactory({command, data}, response) {
@@ -47,7 +59,7 @@ export default class App extends BaseApp {
                 web3MessagesHandler({method: method, request:data, response});
                 break;
             default:
-                EventBus.emit('incorrectRequestedCommand', {response, command: module});
+                EventBus.emit('incorrectRequestedCommand', {response, command: method});
         }
     }
 }
