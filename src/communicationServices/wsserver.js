@@ -29,7 +29,7 @@ export default class WebSocketServer {
     }
 
     getClientsById(id) {
-        return _.filter(this.wsclients, (client) => { return client.userIds.includes(id); });
+        return _.filter(this.wsclients, (client) => { return client[Symbol.for('userIds')].includes(id); });
     }
 
     get server() {
@@ -37,13 +37,13 @@ export default class WebSocketServer {
     }
 
     clientProperty({wsclient, key, value}) {
-        wsclient[key] = value;
+        wsclient[Symbol.for(key)] = value;
     }
 
     connection(wsclient) {
 
         this.wsclients.push(wsclient);
-        wsclient.userIds = [];
+        wsclient[Symbol.for('userIds')] = [];
         wsclient.removeFromArray = (wsclient) => {
             const clientIndex = this.wsclients.indexOf(wsclient);
             if (~clientIndex) {

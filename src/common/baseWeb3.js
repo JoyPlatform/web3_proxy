@@ -1,5 +1,6 @@
 import Web3Service from 'communicationServices/web3';
 import EventBus from 'common/EventBus';
+import _ from 'lodash';
 
 const IPC_CONNECTION_CLOSED = 'Error: IPC socket connection closed';
 const IPC_COULD_NOT_CONNECT = 'Error: CONNECTION ERROR: Couldn\'t connect to node on IPC.';
@@ -67,8 +68,23 @@ export default class BaseWeb3 {
         }
     }
 
+    isTransactionExist(transaction) {
+        return !!transactionsList.find( ({transactionHash}) => transactionHash === transaction.transactionHash);
+    }
+
+    set updateTransactionMined(transaction) {
+        const index = _.findIndex(transactionsList, ({transactionHash}) => transactionHash === transaction.transactionHash);
+
+        if (~index) {
+            transactionsList[index] = transaction;
+        }
+    }
+
     set transactions(transaction) {
-        transactionsList.push(transaction);
+
+        if (!transactionsList.find(({transactionHash}) => transactionHash === transaction.transactionHash)) {
+            transactionsList.push(transaction);
+        }
     }
 
     get transactions() {

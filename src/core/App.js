@@ -24,6 +24,17 @@ export default class App extends BaseApp {
         EventBus.on('addUserToClient', ::this.addUserToClient);
     }
 
+    addUserToClient(response) {
+        const { wsclient, userExist, userId } = response;
+        const usersKey = Symbol.for('userIds');
+
+        if (userExist && !wsclient[usersKey].includes(userId)) {
+            wsclient[usersKey].push(userId);
+        }
+
+        this.sendResponseToClient(response);
+    }
+
     addUsersToClient({request, response}) {
         const { userIds } = request;
         const { wsclient, data } = response;
@@ -35,16 +46,6 @@ export default class App extends BaseApp {
 
     incorrectRequestedCommandHandler({response, command}) {
         response.data = getAppIncorrectCommandResponse(command);
-        this.sendResponseToClient(response);
-    }
-
-    addUserToClient(response) {
-        const { wsclient, userExist, userId } = response;
-
-        if (userExist && !wsclient.userIds.includes(userId)) {
-            wsclient.userIds.push(userId);
-        }
-
         this.sendResponseToClient(response);
     }
 

@@ -7,66 +7,61 @@ import _ from 'lodash';
 
 let module = null;
 const { sufficientConfirmations } = ETHConfiguration;
+const DEPOSIT_TRANSACTION = 'DEPOSIT_TRANSACTION';
+const WITHDRAWAL_TRANSACTION = 'WITHDRAWAL_TRANSACTION';
 
 export default class TransferController {
 
     constructor(baseModule) {
         module = baseModule;
-        this.registerTransfersToDeposits();
-        this.registerTransfersToClient();
+        this.registerTransfers();
     }
 
-    registerTransfersToDeposits() {
-        const Token = getTokenContract(module.eth.Contract);
+    registerTransfers() {
+        module.eth.getBlockNumber().then((fromBlock) => {
+            this.getTransferEvent(DEPOSIT_TRANSACTION, fromBlock);
+            this.getTransferEvent(WITHDRAWAL_TRANSACTION, fromBlock);
+        });
+    }
 
-        module.eth.getBlockNumber().then((fromBlockNum) => {
-            console.info('getBlockNumber');
-            Token.events.Transfer({
-                filter: { to: getDepositAddress() },
-                fromBlock: fromBlockNum,
-                toBlock: 'pending'
-            }).on('data', (data, error) => {
-                console.info('ON DATA Transfer:');
-                console.log(data);
-                if (!error) {
-                    data[Symbol.for('blocksChecked')] = 0;
-                    data[Symbol.for('checkTransaction')] = this.checkTransaction.bind(this, data);
-                    console.log(data);
-                    module.transactions = data;
+    getTransferEvent(type, fromBlock) {
+        const Token = getTokenContract(module.eth.Contract);
+        const filterKey = type === DEPOSIT_TRANSACTION ? 'to' : 'from';
+
+        Token.events.Transfer({
+            filter: { [filterKey]: getDepositAddress() },
+            fromBlock,
+            toBlock: 'pending'
+        }).on('data', (data, error) => {
+            console.info(`On Transfer PENDING ${type}`);
+            if (!error) {
+                data[Symbol.for('blocksChecked')] = 0;
+                data[Symbol.for('checkTransaction')] = () => {};
+                data[Symbol.for('transactionType')] = type;
+                if (!module.isTransactionExist(data)) {
+                    console.log('notifyTransfersInProgress');
                     this.notifyTransfersInProgress(data);
+                    module.transactions = data;
                 }
-            }).on('error', console.error);
-        });
+            }
+        }).on('error', console.error);
+
+        Token.events.Transfer({
+            filter: { [filterKey]: getDepositAddress() },
+            fromBlock,
+            toBlock: 'latest'
+        }).on('data', (data, error) => {
+            console.info(`On Transfer LATEST ${type}`, error);
+            if (!error) {
+                data[Symbol.for('blocksChecked')] = 0;
+                data[Symbol.for('checkTransaction')] = this.checkTransaction.bind(this, data);
+                data[Symbol.for('transactionType')] = type;
+                module.updateTransactionMined = data;
+            }
+        }).on('error', console.error);
     }
 
-    registerTransfersToClient() {
-        const Token = getTokenContract(module.eth.Contract);
-
-        module.eth.getBlockNumber().then((fromBlockNum) => {
-            Token.events.Transfer({
-                filter: { from: getDepositAddress() },
-                fromBlock: fromBlockNum,
-                toBlock: 'latest'
-            }, (error, data) => {
-                console.info('** Transfer Event to registerTransfersToClient:');
-                if (!data) {
-                    console.warn('Can not get Data from Web3 in transfer to client');
-                    return false;
-                }
-                console.info(data);
-                // data.notifyTransfersInProgress = this.notifyDepositInProgress;
-                // data.percentage = 0;
-                // module.transactions = data;
-                // this.notifyDepositInProgress(data);
-            }).on('data', (data, error) => {
-                console.info('ON DATA DEPOSIT   :');
-                console.log(data);
-                console.log(error);
-            })
-                .on('error', console.error);
-        });
-    }
-
+//TODO: need to re-develop
     getTransfersInProgress({request, response}) {
         const { clientId } = request;
         const transfers = [];
@@ -89,17 +84,13 @@ export default class TransferController {
     }
 
     notifyTransfersInProgress(transaction) {
-        const userId = _.get(transaction, 'returnValues.from');
+        const transactionType = transaction[Symbol.for('transactionType')];
+        const userIdKey = transactionType === DEPOSIT_TRANSACTION ? 'from' : 'to';
+
+        const userId = _.get(transaction, `returnValues.${userIdKey}`);
         const response = getCommonTransactionResponse(transaction, userId);
 
         response.userId = userId;
-        module.sendResponseToClients(response);
-    }
-
-    notifyDepositInProgress(transaction) {
-        const response = getCommonTransactionResponse(transaction);
-
-        response.userId = _.get(transaction, 'returnValues.to');
         module.sendResponseToClients(response);
     }
 
@@ -113,10 +104,12 @@ export default class TransferController {
 
             if (!statusReceipt) {
                 console.warn('transaction failed');
+                module.removeTransaction(transaction);
+                return false;
             }
 
             if (blockHash !== blockHashReceipt || blockNumber !== blockNumberReceipt) {
-                transaction[Symbol.for('blocksChecked')] = 0;
+                transaction[Symbol.for('blocksChecked')] = 1;
             } else {
                 transaction[Symbol.for('blocksChecked')] = ++blocksChecked;
             }
@@ -154,9 +147,10 @@ function getCommonTransactionResponse(transaction, userId) {
             status: RESPONSE_STATUS_SUCCESS,
             command: WEB3_ACTION_NOTIFICATION_TRANSFER,
             response: {
-                event: transaction.event,
+                event: transaction[Symbol.for('transactionType')],
                 confNum: transaction[Symbol.for('blocksChecked')],
                 confMax: sufficientConfirmations,
+                transactionHash: transaction.transactionHash,
                 userId
             }
         }
