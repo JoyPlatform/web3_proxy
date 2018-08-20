@@ -102,7 +102,7 @@ export default class TransferController {
         if (transactionReceipt) {
             const { blockHash:blockHashReceipt, blockNumber:blockNumberReceipt, status:statusReceipt } = transactionReceipt;
 
-            if (!statusReceipt) {
+            if (!Number(statusReceipt)) {
                 console.warn('transaction failed');
                 module.removeTransaction(transaction);
                 return false;
