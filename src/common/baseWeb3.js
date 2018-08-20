@@ -1,6 +1,4 @@
 import Web3Service from 'communicationServices/web3';
-import { ETHConfiguration } from 'configs/';
-import _ from 'lodash';
 import EventBus from 'common/EventBus';
 
 const IPC_CONNECTION_CLOSED = 'Error: IPC socket connection closed';
@@ -9,7 +7,6 @@ const CONNECTION_ERRORS = [IPC_CONNECTION_CLOSED, IPC_COULD_NOT_CONNECT];
 
 let webServices = null;
 let transactionsList = [];
-const { sufficientConfirmations } = ETHConfiguration;
 
 export default class BaseWeb3 {
 
@@ -30,8 +27,8 @@ export default class BaseWeb3 {
             if (!error) {
                 resolve();
                 EventBus.emit('Web3ConnectionStatus', true);
+                console.info('Transactions amount: ', this.transactions.length);
                 this.checkTransactions(data);
-                this.updateTransactions();
             } else {
                 this.connectionErrorHandling(subscription, error.toString(), resolve);
             }
@@ -57,21 +54,17 @@ export default class BaseWeb3 {
     checkTransactions({number}) {
 
         this.transactions.forEach((transaction) => {
-            const { blockNumber } = transaction;
-
-            const percentage = (number - blockNumber) * 100 / sufficientConfirmations;
-
-            transaction.percentage = percentage < 100 ? percentage : 100;
-
-            transaction.notifyTransfersInProgress(transaction);
+            transaction[Symbol.for('checkTransaction')](number);
         });
 
     }
 
-    updateTransactions() {
-        const filteredTransactionData = _.filter(this.transactions, transaction => transaction.percentage < 100);
+    removeTransaction(transaction) {
+        const transactionIndex = this.transactions.indexOf(transaction);
 
-        updateTransactionList(filteredTransactionData);
+        if (~transactionIndex) {
+            updateTransactionList([...this.transactions.slice(0, transactionIndex), ...this.transactions.slice(transactionIndex+1)]);
+        }
     }
 
     set transactions(transaction) {

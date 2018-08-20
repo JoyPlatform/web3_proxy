@@ -29,7 +29,7 @@ export default class WebSocketServer {
     }
 
     getClientsById(id) {
-        return _.filter(this.wsclients, (client) => { return client.id === id; });
+        return _.filter(this.wsclients, (client) => { return client.userIds.includes(id); });
     }
 
     get server() {
@@ -90,11 +90,12 @@ export default class WebSocketServer {
     }
 
     sendToClients(response, forAll = false) {
-        let { clientId, data } = response;
+        let { userId, data } = response;
+        console.info('sendToClients by ', userId);
         let clients = [];
 
         if (!forAll) {
-            clients = this.getClientsById(clientId);
+            clients = this.getClientsById(userId);
         }
 
         console.log('clients.length', clients.length);

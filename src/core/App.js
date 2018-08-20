@@ -28,7 +28,7 @@ export default class App extends BaseApp {
         const { userIds } = request;
         const { wsclient, data } = response;
 
-        this.updateClientData({wsclient: wsclient, key: 'userIds', value: userIds});
+        this.updateClientData({wsclient, key: 'userIds', value: userIds});
         data.status = RESPONSE_STATUS_SUCCESS;
         this.sendResponseToClient(response);
     }
@@ -39,10 +39,10 @@ export default class App extends BaseApp {
     }
 
     addUserToClient(response) {
-        const { wsclient, data, userExist } = response;
+        const { wsclient, userExist, userId } = response;
 
-        if (userExist && !wsclient.userIds.includes(data.userId)) {
-            wsclient.userIds.push(data.userId);
+        if (userExist && !wsclient.userIds.includes(userId)) {
+            wsclient.userIds.push(userId);
         }
 
         this.sendResponseToClient(response);

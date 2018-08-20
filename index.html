@@ -6,10 +6,17 @@
 </head>
 <body>
 
-<p><input id="command" placeholder="Command" size="100" width="200px"/></p>
-<p><input id="data" placeholder="data" size="100" width="200px"/></p>
-<p><button onclick="send()">Send</button></p>
-
+<div>
+    <p><input id="command" placeholder="Command" size="100" width="200px"/></p>
+    <p><input id="data" placeholder="data" size="100" width="200px"/></p>
+    <p><button onclick="send()">Send Custom Request</button></p>
+    <p><button onclick="login('0xF7a5d7bE34d8F2854153a61D8D8fE17A72181160')">Login User1</button><button onclick="login('0x845288B09921192Df6217A86a3B8a64038713177')">Login User2</button></p>
+    <p><button onclick="getBalance('0xF7a5d7bE34d8F2854153a61D8D8fE17A72181160')">Get Balance User1</button><button onclick="getBalance('0x845288B09921192Df6217A86a3B8a64038713177')">Get Balance User2</button></p>
+</div>
+<div>
+    <p>Output:</p>
+    <p id="output"></p>
+</div>
 <script>
 
     let wsclient = null;
@@ -32,11 +39,35 @@
     }
 
     function message(response) {
-
+        const p = document.createElement("p");
+        p.textContent = response.data;
+        document.querySelector('#output').appendChild(p);
     }
 
     function close() {
         setTimeout(setupConnection, 3000);
+    }
+
+    function login(userId) {
+        sendPredefined({
+            command: 'isUserExist',
+            data: {"userId": userId}
+        });
+    }
+
+    function getBalance(userId) {
+        sendPredefined({
+            command: 'getBalances',
+            data: {"userId": userId, "balances": [{"currency": "JoyToken", "locations": ["world", "platform", "gameSession"]}]}
+        });
+    }
+
+    function sendPredefined(request) {
+        try {
+            wsclient.send(JSON.stringify(request));
+        } catch (e) {
+
+        }
     }
 
 
