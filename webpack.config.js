@@ -13,6 +13,7 @@ module.exports = {
         "babel-polyfill",
         './src/index.js'
     ],
+    devtool: 'source-map',
     target: 'node',
     plugins:plugins,
     output: {

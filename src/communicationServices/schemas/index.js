@@ -5,8 +5,9 @@ import {
     getAuthSchema,
     getBalancesSchema,
     // getSubscriptionExpiredTime,
-    addUsers,
-    getEmptyDataSchema
+    getAddUsersSchema,
+    getEmptyDataSchema,
+    getTopUpTokensSchema
 } from './schemas';
 
 const ajv = new Ajv({allErrors: true});
@@ -20,13 +21,16 @@ export default function checkSchema(data) {
             validator = ajv.compile(getEmptyDataSchema);
             return validator(data);
         case 'addUsers':
-            validator = ajv.compile(addUsers);
+            validator = ajv.compile(getAddUsersSchema);
             return validator(data);
         case 'isUserExist':
             validator = ajv.compile(getAuthSchema);
             return validator(data);
         case 'getBalances':
             validator = ajv.compile(getBalancesSchema);
+            return validator(data);
+        case 'topUpTokens':
+            validator = ajv.compile(getTopUpTokensSchema);
             return validator(data);
         // case 'getSubscriptionAddress':
         // case 'getTokenAddress':

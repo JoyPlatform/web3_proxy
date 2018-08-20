@@ -1,3 +1,4 @@
+import 'babel-polyfill';
 import 'console-info';
 import 'console-warn';
 import 'console-error';

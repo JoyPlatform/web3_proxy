@@ -56,10 +56,15 @@
     }
 
     function getBalance(userId) {
-        sendPredefined({
-            command: 'getBalances',
-            data: {"userId": userId, "balances": [{"currency": "JoyToken", "locations": ["world", "platform", "gameSession"]}]}
-        });
+        for (let i = 0; i < 1; i++ ) {
+            sendPredefined({
+                command: 'getBalances',
+                data: {
+                    "userId": userId,
+                    "balances": [{"currency": "JoyToken", "locations": ["world"]}]//, "platform", "gameSession"
+                }
+            });
+        }
     }
 
     function sendPredefined(request) {
@@ -72,18 +77,20 @@
 
 
     function send() {
+        for (let i = 0; i < 1; i++ ) {
+            const request = {
+                command: document.querySelector('#command').value,
+                data: JSON.parse(document.querySelector('#data').value)
+            };
 
-        const request = {
-            command: document.querySelector('#command').value,
-            data: JSON.parse(document.querySelector('#data').value)
-        };
 
+            try {
+                wsclient.send(JSON.stringify(request));
+            } catch (e) {
 
-        try {
-            wsclient.send(JSON.stringify(request));
-        } catch (e) {
-
+            }
         }
+
     }
 
 </script>

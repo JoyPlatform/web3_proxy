@@ -90,7 +90,6 @@ export default class TransferController {
         const userId = _.get(transaction, `returnValues.${userIdKey}`);
         const response = getCommonTransactionResponse(transaction, userId);
 
-        response.userId = userId;
         module.sendResponseToClients(response);
     }
 
@@ -143,6 +142,7 @@ function getTransactionReceipt(transactionId) {
 
 function getCommonTransactionResponse(transaction, userId) {
     return {
+        userId,
         data: {
             status: RESPONSE_STATUS_SUCCESS,
             command: WEB3_ACTION_NOTIFICATION_TRANSFER,

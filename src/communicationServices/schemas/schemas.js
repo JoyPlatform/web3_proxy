@@ -90,8 +90,8 @@ export const getEmptyDataSchema = {
     }
 };
 
-export const addUsers = {
-    '$id': 'addUsers',
+export const getAddUsersSchema = {
+    '$id': 'getAddUsersSchema',
     'type': 'object',
     'required': [ 'command', 'data' ],
     'properties': {
@@ -111,6 +111,29 @@ export const addUsers = {
                             }
                         ]
                     }
+                }
+            }
+        }
+    }
+};
+
+export const getTopUpTokensSchema = {
+    '$id': 'getTopUpTokensSchema',
+    'type': 'object',
+    'required': [ 'command', 'data' ],
+    'properties': {
+        'command': {
+            'type': 'string'
+        },
+        'data': {
+            'required': [ 'userId', 'amount' ],
+            'type': 'object',
+            'properties': {
+                'userId': {
+                    'type': 'string'
+                },
+                'amount': {
+                    'type': 'string'
                 }
             }
         }

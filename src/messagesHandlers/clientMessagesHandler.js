@@ -1,5 +1,8 @@
 import EventBus from 'common/EventBus';
-import { CLIENT_ACTION_AUTH_USER, CLIENT_ACTION_ADD_USERS } from 'constants/messageActions';
+import {
+    CLIENT_ACTION_AUTH_USER, CLIENT_ACTION_ADD_USERS, CLIENT_ACTION_GET_BALANCES,
+    CLIENT_ACTION_GET_CONFIGURATION_DATA, CLIENT_ACTION_TOP_UP_TOKENS
+} from 'constants/messageActions';
 
 export default function clientMessagesHandler({method, request, response}) {
     switch (method) {
@@ -31,14 +34,15 @@ export function parseRequestCommand(command) {
         //     result.module = 'web3';
         //     break;
         // case 'getSubscriptionExpiredTime':
-        //     result.module = 'wallet';
+        //     result.module = 'wallet';:
         //     break;
-        case 'getBalances':
-        case 'getEntireContractsData':
+        case CLIENT_ACTION_GET_BALANCES:
+        case CLIENT_ACTION_GET_CONFIGURATION_DATA:
+        case CLIENT_ACTION_TOP_UP_TOKENS:
             result.module = 'web3';
             break;
-        case 'addUsers':
-        case 'isUserExist':
+        case CLIENT_ACTION_ADD_USERS:
+        case CLIENT_ACTION_AUTH_USER:
             result.module = 'client';
             break;
         default:

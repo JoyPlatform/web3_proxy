@@ -7,7 +7,9 @@ const IPC_COULD_NOT_CONNECT = 'Error: CONNECTION ERROR: Couldn\'t connect to nod
 const CONNECTION_ERRORS = [IPC_CONNECTION_CLOSED, IPC_COULD_NOT_CONNECT];
 
 let webServices = null;
+let isOwnerAccountLocked = 0; // 1 // 2
 let transactionsList = [];
+let waitForUnlockRequests = [];
 
 export default class BaseWeb3 {
 
@@ -55,13 +57,20 @@ export default class BaseWeb3 {
     checkTransactions({number}) {
 
         this.transactions.forEach((transaction) => {
-            transaction[Symbol.for('checkTransaction')](number);
+            typeof transaction[Symbol.for('checkTransaction')] === 'function' && transaction[Symbol.for('checkTransaction')](number);
         });
 
     }
 
-    removeTransaction(transaction) {
-        const transactionIndex = this.transactions.indexOf(transaction);
+    removeTransaction({transactionHash}) {
+        let transactionIndex = -1;
+
+        for (let i = 0; i < this.transactions.length; i++) {
+            if (transactionHash === this.transactions[i].transactionHash) {
+                transactionIndex = i;
+                break;
+            }
+        }
 
         if (~transactionIndex) {
             updateTransactionList([...this.transactions.slice(0, transactionIndex), ...this.transactions.slice(transactionIndex+1)]);
@@ -70,6 +79,10 @@ export default class BaseWeb3 {
 
     isTransactionExist(transaction) {
         return !!transactionsList.find( ({transactionHash}) => transactionHash === transaction.transactionHash);
+    }
+
+    clearWaitForUnlockRequests() {
+        waitForUnlockRequests = [];
     }
 
     set updateTransactionMined(transaction) {
@@ -87,6 +100,14 @@ export default class BaseWeb3 {
         }
     }
 
+    get isOwnerAccountLocked() {
+        return isOwnerAccountLocked;
+    }
+
+    set isOwnerAccountLocked(isLocked) {
+        isOwnerAccountLocked = isLocked;
+    }
+
     get transactions() {
         return transactionsList;
     }
@@ -101,6 +122,14 @@ export default class BaseWeb3 {
 
     get utils() {
         return webServices.web3.utils;
+    }
+
+    get waitForUnlockRequests() {
+        return waitForUnlockRequests;
+    }
+
+    set waitForUnlockRequests(request) {
+        waitForUnlockRequests.push(request);
     }
 
 }

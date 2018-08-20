@@ -5,3 +5,9 @@ export function getContractOwnerAddress() {
 
     return AccountAddress.contractsOwner;
 }
+
+export function getContractOwnerPassword() {
+    const { contractOwnerPassword } = ETHConfiguration;
+
+    return contractOwnerPassword;
+}

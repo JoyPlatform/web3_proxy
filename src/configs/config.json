@@ -9,7 +9,7 @@
     "gethProviderType":"ipc",
     "gethProviderSource":"/Users/mkapravchuk/ipc/geth.ipc",
     "sufficientConfirmations": 5,
-    "gasPrice": "80000000000",
+    "gasPrice": "10000000",
 
     "contractOwnerPassword": "test",
     "AccountAddress": {
