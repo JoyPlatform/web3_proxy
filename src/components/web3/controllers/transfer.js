@@ -1,4 +1,5 @@
 import { getTokenContract } from '../contracts/token';
+import { getSubscriptionContract } from '../contracts/subscription';
 import { getDepositAddress } from '../contracts/deposit';
 import { RESPONSE_STATUS_SUCCESS } from 'constants/messageStatuses';
 import { WEB3_ACTION_NOTIFICATION_TRANSFER } from 'constants/messageActions';
@@ -9,6 +10,7 @@ let module = null;
 const { sufficientConfirmations } = ETHConfiguration;
 const DEPOSIT_TRANSACTION = 'DEPOSIT_TRANSACTION';
 const WITHDRAWAL_TRANSACTION = 'WITHDRAWAL_TRANSACTION';
+const SUBSCRIPTION_TRANSACTION = 'SUBSCRIPTION_TRANSACTION';
 
 export default class TransferController {
 
@@ -21,18 +23,46 @@ export default class TransferController {
         module.eth.getBlockNumber().then((fromBlock) => {
             this.getTransferEvent(DEPOSIT_TRANSACTION, fromBlock);
             this.getTransferEvent(WITHDRAWAL_TRANSACTION, fromBlock);
+            this.getTransferEvent(SUBSCRIPTION_TRANSACTION, fromBlock);
         });
     }
 
-    getTransferEvent(type, fromBlock) {
-        const Token = getTokenContract(module.eth.Contract);
-        const filterKey = type === DEPOSIT_TRANSACTION ? 'to' : 'from';
+    getTransferByType(type, fromBlock, toBlock) {
+        let contract = null;
 
-        Token.events.Transfer({
-            filter: { [filterKey]: getDepositAddress() },
-            fromBlock,
-            toBlock: 'pending'
-        }).on('data', (data, error) => {
+        switch (type) {
+            case DEPOSIT_TRANSACTION:
+                contract = getTokenContract(module.eth.Contract);
+                return contract.events.Transfer({
+                    filter: { to: getDepositAddress() },
+                    fromBlock,
+                    toBlock
+                });
+            case WITHDRAWAL_TRANSACTION:
+                contract = getTokenContract(module.eth.Contract);
+                return contract.events.Transfer({
+                    filter: { from: getDepositAddress() },
+                    fromBlock,
+                    toBlock
+                });
+            case SUBSCRIPTION_TRANSACTION:
+                contract = getSubscriptionContract(module.eth.Contract);
+                return contract.events.newSubscription({
+                    filter: {},
+                    fromBlock,
+                    toBlock
+                });
+            default:
+                console.warn('getTransferByType: Unexpected Transfer type');
+        }
+    }
+
+    getTransferEvent(type, fromBlock) {
+
+        const transferPending = this.getTransferByType(type, fromBlock, 'pending');
+        const transferLatest = this.getTransferByType(type, fromBlock, 'latest');
+
+        transferPending.on('data', (data, error) => {
             console.info(`On Transfer PENDING ${type}`);
             if (!error) {
                 data[Symbol.for('blocksChecked')] = 0;
@@ -46,11 +76,7 @@ export default class TransferController {
             }
         }).on('error', console.error);
 
-        Token.events.Transfer({
-            filter: { [filterKey]: getDepositAddress() },
-            fromBlock,
-            toBlock: 'latest'
-        }).on('data', (data, error) => {
+        transferLatest.on('data', (data, error) => {
             console.info(`On Transfer LATEST ${type}`, error);
             if (!error) {
                 data[Symbol.for('blocksChecked')] = 0;
@@ -85,7 +111,21 @@ export default class TransferController {
 
     notifyTransfersInProgress(transaction) {
         const transactionType = transaction[Symbol.for('transactionType')];
-        const userIdKey = transactionType === DEPOSIT_TRANSACTION ? 'from' : 'to';
+        let userIdKey = null;
+
+        switch (transactionType) {
+            case DEPOSIT_TRANSACTION:
+                userIdKey = 'from';
+                break;
+            case WITHDRAWAL_TRANSACTION:
+                userIdKey = 'to';
+                break;
+            case SUBSCRIPTION_TRANSACTION:
+                userIdKey = 'buyer';
+                break;
+            default:
+                console.warn('notifyTransfersInProgress: Unexpected Transfer type');
+        }
 
         const userId = _.get(transaction, `returnValues.${userIdKey}`);
         const response = getCommonTransactionResponse(transaction, userId);
