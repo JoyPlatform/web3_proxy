@@ -15,7 +15,6 @@ export default class Web3 extends BaseWeb3 {
         await this.initWeb3Services();
         this.initComponents();
         this.initEventListeners();
-        this.transactionsAmount = 0;
     }
 
     initComponents() {
@@ -44,46 +43,11 @@ export default class Web3 extends BaseWeb3 {
     }
 
     addToOwnerTransactionsList(controller, method, params) {
-        this.waitForUnlockRequests = { params, controller, method };
-        this.executeOwnerTransactions();
+        this.ownerController.addToOwnerTransactionsList(controller, method, params);
     }
 
-    async executeOwnerTransactions() {
-        if (this.isOwnerAccountLocked === 0 && this.waitForUnlockRequests.length) {
-            this.isOwnerAccountLocked = 1;
-
-            const isAccountUnlocked = await this.ownerController.unlockOwnerAccount(500)
-                .then((isAccountUnlocked) => {
-                    return isAccountUnlocked;
-                }).catch((e) => {
-                    console.log(e);
-                });
-
-            console.info('isAccountUnlocked', isAccountUnlocked);
-
-            const transactionsAmount = this.waitForUnlockRequests.length;
-            for (let i = 0; i < 100; i++ ) {
-                if (i < transactionsAmount) {
-                    this.transactionsAmount++;
-                    const { params, controller, method } = this.waitForUnlockRequests.shift();
-                    controller[method](params);
-                } else {
-                    break;
-                }
-            }
-        }
-    }
-
-    async onExecutedOwnerTransaction() {
-        if (--this.transactionsAmount === 0) {
-            await this.ownerController.lockOwnerAccount()
-                .then((isAccountLocked) => {
-                    console.info('is Account locked: ', isAccountLocked);
-                   return isAccountLocked ? 0 : 1;
-                });
-            this.isOwnerAccountLocked = 0;
-            this.executeOwnerTransactions();
-        }
+    onExecutedOwnerTransaction() {
+        this.ownerController.onExecutedOwnerTransaction();
     }
 
     executeEmitCallback(event, data) {

@@ -7,7 +7,6 @@ const IPC_COULD_NOT_CONNECT = 'Error: CONNECTION ERROR: Couldn\'t connect to nod
 const CONNECTION_ERRORS = [IPC_CONNECTION_CLOSED, IPC_COULD_NOT_CONNECT];
 
 let webServices = null;
-let isOwnerAccountLocked = 0; // 1 // 2
 let transactionsList = [];
 let waitForUnlockRequests = [];
 
@@ -98,14 +97,6 @@ export default class BaseWeb3 {
         if (!transactionsList.find(({transactionHash}) => transactionHash === transaction.transactionHash)) {
             transactionsList.push(transaction);
         }
-    }
-
-    get isOwnerAccountLocked() {
-        return isOwnerAccountLocked;
-    }
-
-    set isOwnerAccountLocked(isLocked) {
-        isOwnerAccountLocked = isLocked;
     }
 
     get transactions() {
