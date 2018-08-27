@@ -16,23 +16,8 @@ export default class TokenController {
     }
 
     async topUpTokens({request, response}) {
-console.log('topUpTokens');
-        const { userId, amount} = request;
-        // if (unlockAccount) {
-        //     const isAccountUnlocked = await module.ownerController.unlockOwnerAccount(20)
-        //         .then((isAccountUnlocked) => {
-        //             console.log('isAccountUnlocked', isAccountUnlocked);
-        //             return isAccountUnlocked;
-        //         }).catch((e) => {
-        //             console.log(e);
-        //         });
-        //
-        //     if (!isAccountUnlocked) {
-        //         console.warn('Account is locked');
-        //         return false;
-        //     }
-        // }
 
+        const { userId, amount} = request;
         const Token = getTokenContract(module.eth.Contract);
 
         Token.methods.transfer(userId, new BigNumber(amount)).send({ from: getContractOwnerAddress() })
