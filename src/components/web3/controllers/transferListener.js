@@ -12,7 +12,8 @@ const DEPOSIT_TRANSACTION = 'DEPOSIT_TRANSACTION';
 const WITHDRAWAL_TRANSACTION = 'WITHDRAWAL_TRANSACTION';
 const SUBSCRIPTION_TRANSACTION = 'SUBSCRIPTION_TRANSACTION';
 
-export default class TransferController {
+// getting notification about transactions from MetaMask
+export default class TransferListenerController {
 
     constructor(baseModule) {
         module = baseModule;

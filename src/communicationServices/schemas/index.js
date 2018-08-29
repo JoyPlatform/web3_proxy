@@ -7,7 +7,8 @@ import {
     // getSubscriptionExpiredTime,
     getAddUsersSchema,
     getEmptyDataSchema,
-    getTopUpTokensSchema
+    getTopUpTokensSchema,
+    getTransferFromGameSchema
 } from './schemas';
 
 const ajv = new Ajv({allErrors: true});
@@ -24,6 +25,7 @@ export default function checkSchema(data) {
             validator = ajv.compile(getAddUsersSchema);
             return validator(data);
         case 'isUserExist':
+        case 'transferToGame':
             validator = ajv.compile(getAuthSchema);
             return validator(data);
         case 'getBalances':
@@ -32,6 +34,10 @@ export default function checkSchema(data) {
         case 'topUpTokens':
             validator = ajv.compile(getTopUpTokensSchema);
             return validator(data);
+        case 'transferFromGame':
+            validator = ajv.compile(getTransferFromGameSchema);
+            return validator(data);
+
         // case 'getSubscriptionAddress':
         // case 'getTokenAddress':
         // case 'getDepositAddress':

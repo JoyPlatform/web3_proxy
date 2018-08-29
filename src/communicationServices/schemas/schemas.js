@@ -140,6 +140,32 @@ export const getTopUpTokensSchema = {
     }
 };
 
+export const getTransferFromGameSchema = {
+    '$id': 'getEndGameSessionSchema',
+    'type': 'object',
+    'required': [ 'command', 'data' ],
+    'properties': {
+        'command': {
+            'type': 'string'
+        },
+        'data': {
+            'required': [ 'userId', 'balance', 'gameProcessHash' ],
+            'type': 'object',
+            'properties': {
+                'userId': {
+                    'type': 'string'
+                },
+                'balance': {
+                    'type': 'string'
+                },
+                'gameProcessHash': {
+                    'type': 'string'
+                }
+            }
+        }
+    }
+};
+
 export const getSubscriptionExpiredTime = {
 
     '$id': 'getSubscriptionExpiredTime',
