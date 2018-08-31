@@ -46,6 +46,7 @@ export const getBalancesSchema = {
             'properties': {
                 'balances': {
                     'type': 'array',
+                    "minItems": 1,
                     'items': {
                         'allOf': [
                             {
@@ -104,6 +105,7 @@ export const getAddUsersSchema = {
             'properties': {
                 'userIds': {
                     'type': 'array',
+                    "minItems": 1,
                     'items': {
                         'allOf': [
                             {
