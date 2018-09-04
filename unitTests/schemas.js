@@ -112,7 +112,7 @@ describe('JSON Schema tests', () => {
             expect(checkSchema(request)).to.not.be.ok();
         });
 
-        it('Should return false if balances property is empty', () => {
+        it('Should return false if balances property is empty array', () => {
             const request = {'command': getBalancesCommand, 'data': {'userId': '123', 'balances':[]}};
             expect(checkSchema(request)).to.not.be.ok();
         });

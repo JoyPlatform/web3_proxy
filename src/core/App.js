@@ -8,10 +8,10 @@ import { RESPONSE_STATUS_SUCCESS } from 'constants/messageStatuses';
 
 export default class App extends BaseApp {
 
-    constructor() {
+    constructor(disableServer) {
         super();
         this.initEventListeners();
-        this.initWSServer();
+        !disableServer && this.initWSServer();
     }
 
     initEventListeners() {

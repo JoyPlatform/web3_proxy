@@ -29,10 +29,9 @@ export default class OwnerController {
     }
 
     async executeOwnerTransactions() {
-        const waitForUnlockRequestsLength = waitForUnlockRequests.length;
 
-        if (isOwnerAccountLocked && waitForUnlockRequestsLength) {
-            isOwnerAccountLocked = true;
+        if (isOwnerAccountLocked && waitForUnlockRequests.length) {
+            isOwnerAccountLocked = false;
 
             isOwnerAccountLocked = await this.unlockOwnerAccount(500)
                 .then((isAccountUnlocked) => {
@@ -41,10 +40,8 @@ export default class OwnerController {
                     console.log(e);
                 });
 
-            console.info('isOwnerAccountLocked', isOwnerAccountLocked);
-
             for (let i = 0; i < 100; i++ ) {
-                if (i < waitForUnlockRequestsLength) {
+                if (i < waitForUnlockRequests.length) {
                     transactionsAmount++;
                     const { params, controller, method } = waitForUnlockRequests.shift();
                     controller[method](params);
@@ -59,12 +56,15 @@ export default class OwnerController {
         if (--transactionsAmount === 0) {
             isOwnerAccountLocked = await this.lockOwnerAccount()
                 .then((isAccountLocked) => {
-                    console.info('isOwnerAccountLocked: ', isAccountLocked);
                     return isAccountLocked;
                 });
 
             this.executeOwnerTransactions();
         }
+    }
+
+    get waitForUnlockRequests() {
+        return waitForUnlockRequests;
     }
 }
 
