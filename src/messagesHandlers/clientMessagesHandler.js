@@ -4,6 +4,7 @@ import {
     CLIENT_ACTION_GET_CONFIGURATION_DATA, CLIENT_ACTION_TOP_UP_TOKENS,
     CLIENT_ACTION_TRANSFER_TO_GAME, CLIENT_ACTION_TRANSFER_FROM_GAME
 } from 'constants/messageActions';
+import { MODULE_CLIENT, MODULE_WEB3} from 'constants/modules';
 
 export default function clientMessagesHandler({method, request, response}) {
     switch (method) {
@@ -24,29 +25,16 @@ export function parseRequestCommand(command) {
 
 
     switch (command) {
-        // case 'authUser':
-        // case 'getBalances':
-        //     result.module = 'client';
-        //     break;
-        // case 'getSubscriptionAddress':
-        // case 'getTokenAddress':
-        // case 'getDepositAddress':
-        // case 'getTransfersInProgress':
-        //     result.module = 'web3';
-        //     break;
-        // case 'getSubscriptionExpiredTime':
-        //     result.module = 'wallet';:
-        //     break;
         case CLIENT_ACTION_GET_BALANCES:
         case CLIENT_ACTION_GET_CONFIGURATION_DATA:
         case CLIENT_ACTION_TOP_UP_TOKENS:
         case CLIENT_ACTION_TRANSFER_TO_GAME:
         case CLIENT_ACTION_TRANSFER_FROM_GAME:
-            result.module = 'web3';
+            result.module = MODULE_WEB3;
             break;
         case CLIENT_ACTION_ADD_USERS:
         case CLIENT_ACTION_AUTH_USER:
-            result.module = 'client';
+            result.module = MODULE_CLIENT;
             break;
         default:
             result.module = '';

@@ -12,41 +12,30 @@ import {
 } from './schemas';
 
 const ajv = new Ajv({allErrors: true});
+const getEmptyDataSchemaValidator = ajv.compile(getEmptyDataSchema);
+const getAddUsersSchemaValidator = ajv.compile(getAddUsersSchema);
+const getAuthSchemaValidator = ajv.compile(getAuthSchema);
+const getBalancesSchemaValidator = ajv.compile(getBalancesSchema);
+const getTopUpTokensSchemaValidator = ajv.compile(getTopUpTokensSchema);
+const getTransferFromGameSchemaValidator = ajv.compile(getTransferFromGameSchema);
 
 export default function checkSchema(data) {
     const method = _.get(data, 'command', '');
 
-    let validator = null;
     switch (method) {
         case 'getEntireContractsData':
-            validator = ajv.compile(getEmptyDataSchema);
-            return validator(data);
+            return getEmptyDataSchemaValidator(data);
         case 'addUsers':
-            validator = ajv.compile(getAddUsersSchema);
-            return validator(data);
+            return getAddUsersSchemaValidator(data);
         case 'isUserExist':
         case 'transferToGame':
-            validator = ajv.compile(getAuthSchema);
-            return validator(data);
+            return getAuthSchemaValidator(data);
         case 'getBalances':
-            validator = ajv.compile(getBalancesSchema);
-            return validator(data);
+            return getBalancesSchemaValidator(data);
         case 'topUpTokens':
-            validator = ajv.compile(getTopUpTokensSchema);
-            return validator(data);
+            return getTopUpTokensSchemaValidator(data);
         case 'transferFromGame':
-            validator = ajv.compile(getTransferFromGameSchema);
-            return validator(data);
-
-        // case 'getSubscriptionAddress':
-        // case 'getTokenAddress':
-        // case 'getDepositAddress':
-        // case 'getTransfersInProgress':
-        //     validator = ajv.compile(getEmptyDataSchema);
-        //     return validator(data);
-        // case 'getSubscriptionExpiredTime':
-        //     validator = ajv.compile(getSubscriptionExpiredTime);
-        //     return validator(data);
+            return getTransferFromGameSchemaValidator(data);
         default:
             return false;
     }

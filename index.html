@@ -23,7 +23,7 @@
 
     setupConnection();
     function setupConnection() {
-        //wsclient = new WebSocket(`ws://192.168.1.85:8757/platform`);
+        // wsclient = new WebSocket(`ws://192.168.1.85:8757/platform`);
         wsclient = new WebSocket(`ws://localhost:8010/platform`);
         wsclient.onopen = open;
         wsclient.onerror = error;
