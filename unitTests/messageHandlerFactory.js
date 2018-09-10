@@ -101,4 +101,27 @@ describe('Tests for MessageHandlerFactory', () => {
             expect(spy.calledOnce).to.be.ok();
         });
     });
+
+    describe('Tests for getWeb3ProxyVersion request command', () => {
+        it('getServerVersion method should be called', () => {
+            const spy = sinon.spy();
+
+            EventBus.removeListener('getServerVersion');
+            EventBus.on('getServerVersion', spy);
+            EventBus.emit('onMessage', {command:'getWeb3ProxyVersion', data: {}}, {});
+            expect(spy.calledOnce).to.be.ok();
+        });
+    });
+
+
+    describe('Tests for getEntireContractsData request command', () => {
+        it('Web3GetConfigurationData method should be called', () => {
+            const spy = sinon.spy();
+
+            EventBus.removeListener('Web3GetConfigurationData');
+            EventBus.on('Web3GetConfigurationData', spy);
+            EventBus.emit('onMessage', {command:'getEntireContractsData', data: {}}, {});
+            expect(spy.calledOnce).to.be.ok();
+        });
+    });
 });

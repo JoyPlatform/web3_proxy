@@ -253,5 +253,18 @@ describe('JSON Schema tests', () => {
             expect(checkSchema(request)).to.be.ok();
         });
     });
+
+    describe('getEntireContractsData Request Schema', () => {
+        const getEntireContractsDataCommand = 'getEntireContractsData';
+        const getWeb3ProxyVersionCommand = 'getWeb3ProxyVersion';
+
+        it('Should return true if no data property', () => {
+            let request = {'command': getEntireContractsDataCommand};
+            expect(checkSchema(request)).to.be.ok();
+
+            request = {'command': getWeb3ProxyVersionCommand};
+            expect(checkSchema(request)).to.be.ok();
+        });
+    });
 });
 

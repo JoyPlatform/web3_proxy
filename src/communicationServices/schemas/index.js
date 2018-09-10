@@ -24,6 +24,7 @@ export default function checkSchema(data) {
 
     switch (method) {
         case 'getEntireContractsData':
+        case 'getWeb3ProxyVersion':
             return getEmptyDataSchemaValidator(data);
         case 'addUsers':
             return getAddUsersSchemaValidator(data);

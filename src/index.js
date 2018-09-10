@@ -13,6 +13,9 @@ process.on('uncaughtException', function (exception) {
 });
 /*eslint-enable */
 (() => {
+    /*eslint-disable */
+    console.info(`Web3_Proxy ver. ${COMMITHASH}`);
+    /*eslint-enable */
     new ETH();
     new App();
 })();

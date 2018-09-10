@@ -1,10 +1,17 @@
 const path = require('path');
 const webpack = require('webpack');
+const GitRevisionPlugin = require('git-revision-webpack-plugin')
+const gitRevisionPlugin = new GitRevisionPlugin();
 
 const plugins = [
     new webpack.NormalModuleReplacementPlugin(/^any-promise$/, 'bluebird'),
     new webpack.DefinePlugin({
         'process.env.NODE_ENV': JSON.stringify('development')
+    }),
+    new webpack.DefinePlugin({
+        'VERSION': JSON.stringify(gitRevisionPlugin.version()),
+        'COMMITHASH': JSON.stringify(gitRevisionPlugin.commithash()),
+        'BRANCH': JSON.stringify(gitRevisionPlugin.branch())
     })
 ];
 

@@ -3,7 +3,6 @@ import clientMessagesHandler, { parseRequestCommand } from 'messagesHandlers/cli
 import web3MessagesHandler from 'messagesHandlers/web3MessagesHandler';
 import BaseApp from 'common/baseApp';
 import { MODULE_CLIENT, MODULE_WEB3 } from 'constants/modules';
-import { getAppIncorrectCommandResponse } from 'components/app/responses/';
 import { RESPONSE_STATUS_SUCCESS } from 'constants/messageStatuses';
 
 export default class App extends BaseApp {
@@ -17,6 +16,7 @@ export default class App extends BaseApp {
     initEventListeners() {
         EventBus.on('onMessage', ::this.messageHandlerFactory);
         EventBus.on('incorrectRequestedCommand', ::this.incorrectRequestedCommandHandler);
+        EventBus.on('getServerVersion', ::this.getServerVersion);
         EventBus.on('updateClientData', ::this.updateClientData);
         EventBus.on('sendResponseToClient', ::this.sendResponseToClient);
         EventBus.on('sendResponseToClients', ::this.sendResponseToClients);
@@ -41,11 +41,6 @@ export default class App extends BaseApp {
 
         this.updateClientData({wsclient, key: 'userIds', value: userIds});
         data.status = RESPONSE_STATUS_SUCCESS;
-        this.sendResponseToClient(response);
-    }
-
-    incorrectRequestedCommandHandler({response, command}) {
-        response.data = getAppIncorrectCommandResponse(command);
         this.sendResponseToClient(response);
     }
 
