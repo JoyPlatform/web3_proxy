@@ -29,7 +29,6 @@ export default class BaseWeb3 {
             if (!error) {
                 resolve();
                 EventBus.emit('Web3ConnectionStatus', true);
-                console.info('Transactions amount: ', this.transactions.length);
                 this.checkTransactions(data);
             } else {
                 this.connectionErrorHandling(subscription, error.toString(), resolve);
@@ -97,6 +96,7 @@ export default class BaseWeb3 {
         if (!transactionsList.find(({transactionHash}) => transactionHash === transaction.transactionHash)) {
             transactionsList.push(transaction);
         }
+        console.info('Transactions amount: ', transactionsList.length);
     }
 
     get transactions() {
@@ -127,5 +127,5 @@ export default class BaseWeb3 {
 
 function updateTransactionList(filteredTransactionData) {
     transactionsList = filteredTransactionData;
-    console.log('transactionsList amount', transactionsList.length);
+    console.info('transactionsList amount', transactionsList.length);
 }
