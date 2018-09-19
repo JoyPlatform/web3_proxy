@@ -1,5 +1,6 @@
 import EventBus from 'common/EventBus';
-import clientMessagesHandler, { parseRequestCommand } from 'messagesHandlers/clientMessagesHandler';
+import parseRequestCommand from 'messagesHandlers';
+import clientMessagesHandler from 'messagesHandlers/clientMessagesHandler';
 import web3MessagesHandler from 'messagesHandlers/web3MessagesHandler';
 import BaseApp from 'common/baseApp';
 import { MODULE_CLIENT, MODULE_WEB3 } from 'constants/modules';
@@ -35,7 +36,7 @@ export default class App extends BaseApp {
         this.sendResponseToClient(response);
     }
 
-    addUsersToClient({request, response}) {
+    addUsersToClient({ request, response }) {
         const { userIds } = request;
         const { wsclient, data } = response;
 
@@ -44,7 +45,7 @@ export default class App extends BaseApp {
         this.sendResponseToClient(response);
     }
 
-    messageHandlerFactory({command, data}, response) {
+    messageHandlerFactory({ command, data }, response) {
         const { module, method } = parseRequestCommand(command);
 
         switch (module) {
@@ -52,7 +53,7 @@ export default class App extends BaseApp {
                 clientMessagesHandler({method: method, request: data, response});
                 break;
             case MODULE_WEB3:
-                web3MessagesHandler({method: method, request:data, response});
+                web3MessagesHandler({method: method, request: data, response});
                 break;
             default:
                 EventBus.emit('incorrectRequestedCommand', {response, command: method});

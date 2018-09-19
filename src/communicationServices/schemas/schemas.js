@@ -18,14 +18,16 @@ export const getAuthSchema = {
     'required': [ 'command', 'data' ],
     'properties': {
         'command': {
-            'type': 'string'
+            'type': 'string',
+            'minLength': 1
         },
         'data': {
             'required': [ 'userId' ],
             'type': 'object',
             'properties': {
                 'userId': {
-                    'type': 'string'
+                    'type': 'string',
+                    'minLength': 1
                 }
             }
         }
@@ -38,7 +40,8 @@ export const getBalancesSchema = {
     'required': [ 'command', 'data' ],
     'properties': {
         'command': {
-            'type': 'string'
+            'type': 'string',
+            'minLength': 1
         },
         'data': {
             'type': 'object',
@@ -53,14 +56,16 @@ export const getBalancesSchema = {
                                 'type': 'object',
                                 'properties': {
                                     'currency': {
-                                        'type': 'string'
+                                        'type': 'string',
+                                        'minLength': 1
                                     },
                                     'locations': {
                                         'type': 'array',
                                         'items': {
                                             'allOf': [
                                                 {
-                                                    'type': 'string'
+                                                    'type': 'string',
+                                                    'minLength': 1
                                                 }
                                             ]
                                         }
@@ -73,7 +78,8 @@ export const getBalancesSchema = {
                     }
                 },
                 'userId': {
-                    'type': 'string'
+                    'type': 'string',
+                    'minLength': 1
                 }
             }
         }
@@ -86,18 +92,20 @@ export const getEmptyDataSchema = {
     'required': [ 'command'],
     'properties': {
         'command': {
-            'type': 'string'
+            'type': 'string',
+            'minLength': 1
         }
     }
 };
 
-export const getAddUsersSchema = {
-    '$id': 'getAddUsersSchema',
+export const getUsersSchema = {
+    '$id': 'getUsersSchema',
     'type': 'object',
     'required': [ 'command', 'data' ],
     'properties': {
         'command': {
-            'type': 'string'
+            'type': 'string',
+            'minLength': 1
         },
         'data': {
             'required': [ 'userIds' ],
@@ -109,7 +117,8 @@ export const getAddUsersSchema = {
                     'items': {
                         'allOf': [
                             {
-                                'type': 'string'
+                                'type': 'string',
+                                'minLength': 1
                             }
                         ]
                     }
@@ -125,17 +134,20 @@ export const getTopUpTokensSchema = {
     'required': [ 'command', 'data' ],
     'properties': {
         'command': {
-            'type': 'string'
+            'type': 'string',
+            'minLength': 1
         },
         'data': {
             'required': [ 'userId', 'amount' ],
             'type': 'object',
             'properties': {
                 'userId': {
-                    'type': 'string'
+                    'type': 'string',
+                    'minLength': 1
                 },
                 'amount': {
-                    'type': 'string'
+                    'type': 'string',
+                    'minLength': 1
                 }
             }
         }
@@ -148,41 +160,24 @@ export const getTransferFromGameSchema = {
     'required': [ 'command', 'data' ],
     'properties': {
         'command': {
-            'type': 'string'
+            'type': 'string',
+            'minLength': 1
         },
         'data': {
             'required': [ 'userId', 'balance', 'gameProcessHash' ],
             'type': 'object',
             'properties': {
                 'userId': {
-                    'type': 'string'
+                    'type': 'string',
+                    'minLength': 1
                 },
                 'balance': {
-                    'type': 'string'
+                    'type': 'string',
+                    'minLength': 1
                 },
                 'gameProcessHash': {
-                    'type': 'string'
-                }
-            }
-        }
-    }
-};
-
-export const getSubscriptionExpiredTime = {
-
-    '$id': 'getSubscriptionExpiredTime',
-    'type': 'object',
-    'required': [ 'command', 'data' ],
-    'properties': {
-        'command': {
-            'type': 'string'
-        },
-        'data': {
-            'type': 'object',
-            'required': [ 'unit' ],
-            'properties': {
-                'unit': {
-                    'type': 'string'
+                    'type': 'string',
+                    'minLength': 1
                 }
             }
         }

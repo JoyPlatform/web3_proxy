@@ -42,7 +42,7 @@
     function message(response) {
         const p = document.createElement("p");
         p.textContent = response.data;
-        document.querySelector('#output').appendChild(p);
+        document.querySelector('#output').prepend(p);
     }
 
     function close() {

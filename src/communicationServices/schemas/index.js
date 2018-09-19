@@ -4,13 +4,12 @@ import {
     CLIENT_ACTION_AUTH_USER, CLIENT_ACTION_ADD_USERS, CLIENT_ACTION_GET_BALANCES,
     CLIENT_ACTION_GET_CONFIGURATION_DATA, CLIENT_ACTION_TOP_UP_TOKENS,
     CLIENT_ACTION_TRANSFER_TO_GAME, CLIENT_ACTION_TRANSFER_FROM_GAME,
-    CLIENT_ACTION_GET_WEB3_PROXY_VERSION
+    CLIENT_ACTION_GET_WEB3_PROXY_VERSION, CLIENT_ACTION_GET_TRANSFERS_IN_PROGRESS
 } from 'constants/messageActions';
 import {
     getAuthSchema,
     getBalancesSchema,
-    // getSubscriptionExpiredTime,
-    getAddUsersSchema,
+    getUsersSchema,
     getEmptyDataSchema,
     getTopUpTokensSchema,
     getTransferFromGameSchema
@@ -18,7 +17,7 @@ import {
 
 const ajv = new Ajv({allErrors: true});
 const getEmptyDataSchemaValidator = ajv.compile(getEmptyDataSchema);
-const getAddUsersSchemaValidator = ajv.compile(getAddUsersSchema);
+const getUsersSchemaValidator = ajv.compile(getUsersSchema);
 const getAuthSchemaValidator = ajv.compile(getAuthSchema);
 const getBalancesSchemaValidator = ajv.compile(getBalancesSchema);
 const getTopUpTokensSchemaValidator = ajv.compile(getTopUpTokensSchema);
@@ -32,7 +31,8 @@ export default function checkSchema(data) {
         case CLIENT_ACTION_GET_WEB3_PROXY_VERSION:
             return getEmptyDataSchemaValidator(data);
         case CLIENT_ACTION_ADD_USERS:
-            return getAddUsersSchemaValidator(data);
+        case CLIENT_ACTION_GET_TRANSFERS_IN_PROGRESS:
+            return getUsersSchemaValidator(data);
         case CLIENT_ACTION_AUTH_USER:
         case CLIENT_ACTION_TRANSFER_TO_GAME:
             return getAuthSchemaValidator(data);

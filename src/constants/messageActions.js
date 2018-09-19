@@ -8,4 +8,3 @@ export const CLIENT_ACTION_TOP_UP_TOKENS = 'topUpTokens';
 export const CLIENT_ACTION_TRANSFER_TO_GAME = 'transferToGame';
 export const CLIENT_ACTION_TRANSFER_FROM_GAME = 'transferFromGame';
 export const CLIENT_ACTION_GET_WEB3_PROXY_VERSION = 'getWeb3ProxyVersion';
-

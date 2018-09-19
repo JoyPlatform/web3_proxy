@@ -3,9 +3,10 @@ import { getDepositContract } from '../contracts/deposit';
 import { getContractOwnerAddress } from '../contracts/owner';
 import { getGameAddress, getGameContract } from '../contracts/game';
 import { BigNumber } from 'bignumber.js';
-import {WEB3_ACTION_NOTIFICATION_TRANSFER} from 'constants/messageActions';
-import {RESPONSE_STATUS_SUCCESS} from 'constants/messageStatuses';
+import { RESPONSE_STATUS_SUCCESS } from 'constants/messageStatuses';
 import { ETHConfiguration } from 'configs/';
+import { getCommonTransactionResponse } from '../responses';
+import {WEB3_ACTION_NOTIFICATION_TRANSFER} from 'constants/messageActions';
 
 const TOP_UP_TOKENS_TRANSACTION = 'TOP_UP_TOKENS_TRANSACTION';
 const TRANSFER_TO_GAME_TRANSACTION = 'TRANSFER_TO_GAME_TRANSACTION';
@@ -19,45 +20,50 @@ export default class TransferExecuteController {
         module = baseModule;
     }
 
-    async transferToGame({request, response}) {
+    async transferToGame({request}) {
         const { userId } = request;
         const Deposit = getDepositContract(module.eth.Contract);
 
         const contract = Deposit.methods.transferToGame(userId, getGameAddress()).send({ from: getContractOwnerAddress() });
-        this.getContractEvents(contract, TRANSFER_TO_GAME_TRANSACTION, response, userId);
+        this.getContractEvents(contract, TRANSFER_TO_GAME_TRANSACTION, userId);
     }
 
-    async transferFromGame({request, response}) {
+    async transferFromGame({request}) {
         const { userId, balance, gameProcessHash } = request;
         const Game = getGameContract(module.eth.Contract);
 
         const contract = Game.methods.responseFromWS(userId, balance, gameProcessHash).send({ from: getContractOwnerAddress() });
-        this.getContractEvents(contract, TRANSFER_FROM_GAME_TRANSACTION, response, userId);
+        this.getContractEvents(contract, TRANSFER_FROM_GAME_TRANSACTION, userId);
     }
 
-    async topUpTokens({request, response}) {
+    async topUpTokens({request}) {
 
         const { userId, amount} = request;
         const Token = getTokenContract(module.eth.Contract);
 
         const contract = Token.methods.transfer(userId, new BigNumber(amount)).send({ from: getContractOwnerAddress() });
-        this.getContractEvents(contract, TOP_UP_TOKENS_TRANSACTION, response, userId);
+        this.getContractEvents(contract, TOP_UP_TOKENS_TRANSACTION, userId);
     }
 
-    getContractEvents(executedContract, transactionType, response, userId) {
+    getContractEvents(executedContract, transactionType, userId) {
         executedContract.once('transactionHash', (transactionHash) => {
-            response.data = getCommonTransactionResponse(transactionType, transactionHash, userId, 0);
-            module.transactions = {
+            const transaction = {
                 transactionHash,
-                [Symbol.for('transactionType')]: transactionType
+                [Symbol.for('transactionType')]: transactionType,
+                [Symbol.for('userId')]: userId,
+                [Symbol.for('blocksChecked')]: 0
             };
+            transaction[Symbol.for('status')] = getCommonTransactionResponse(transaction);
+            module.transactions = transaction;
             module.onExecutedOwnerTransaction();
-            module.sendResponseToClient(response);
+            this.notifyTransfersInProgress(transaction, RESPONSE_STATUS_SUCCESS);
         }).on('confirmation', function(confNumber, transaction) {
-            const {transactionHash} = transaction;
-
-            response.data = getCommonTransactionResponse(transactionType, transactionHash, userId, confNumber + 1);
-            module.sendResponseToClient(response);
+            transaction[Symbol.for('transactionType')] = transactionType;
+            transaction[Symbol.for('userId')] = userId;
+            transaction[Symbol.for('blocksChecked')] = confNumber + 1;
+            transaction[Symbol.for('status')] = getCommonTransactionResponse(transaction);
+            module.updateTransactionMined = transaction;
+            this.notifyTransfersInProgress(transaction, RESPONSE_STATUS_SUCCESS);
 
             if (confNumber >= sufficientConfirmations - 1) {
                 module.removeTransaction(transaction);
@@ -70,22 +76,23 @@ export default class TransferExecuteController {
             // }
         }).then((transaction) => {
             transaction[Symbol.for('transactionType')] = transactionType;
+            transaction[Symbol.for('userId')] = userId;
+            transaction[Symbol.for('blocksChecked')] = 0;
+            transaction[Symbol.for('status')] = getCommonTransactionResponse(transaction);
             module.updateTransactionMined = transaction;
         });
     }
 
-}
+    notifyTransfersInProgress(transaction, status) {
+        const response = {
+            userId: transaction[Symbol.for('userId')],
+            data: {
+                status,
+                command: WEB3_ACTION_NOTIFICATION_TRANSFER,
+                response: transaction[Symbol.for('status')]
+            }
+        };
 
-function getCommonTransactionResponse(transactionType, transactionHash, userId, confNum) {
-    return {
-        status: RESPONSE_STATUS_SUCCESS,
-        command: WEB3_ACTION_NOTIFICATION_TRANSFER,
-        response: {
-            event: transactionType,
-            confNum,
-            confMax: sufficientConfirmations,
-            transactionHash,
-            userId
-        }
-    };
+        module.sendResponseToClients(response);
+    }
 }

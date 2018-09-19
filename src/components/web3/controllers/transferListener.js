@@ -2,8 +2,9 @@ import { getTokenContract } from '../contracts/token';
 import { getSubscriptionContract } from '../contracts/subscription';
 import { getDepositAddress } from '../contracts/deposit';
 import { RESPONSE_STATUS_SUCCESS } from 'constants/messageStatuses';
-import { WEB3_ACTION_NOTIFICATION_TRANSFER } from 'constants/messageActions';
+import {WEB3_ACTION_NOTIFICATION_TRANSFER} from 'constants/messageActions';
 import { ETHConfiguration } from 'configs/';
+import { getCommonTransactionResponse } from '../responses';
 import _ from 'lodash';
 
 let module = null;
@@ -63,90 +64,54 @@ export default class TransferListenerController {
         const transferPending = this.getTransferByType(type, fromBlock, 'pending');
         const transferLatest = this.getTransferByType(type, fromBlock, 'latest');
 
-        transferPending.on('data', (data, error) => {
+        transferPending.on('data', (transaction, error) => {
             console.info(`On Transfer PENDING ${type}`);
             if (!error) {
-                data[Symbol.for('blocksChecked')] = 0;
-                data[Symbol.for('checkTransaction')] = () => {};
-                data[Symbol.for('transactionType')] = type;
-                if (!module.isTransactionExist(data)) {
-                    console.log('notifyTransfersInProgress');
-                    this.notifyTransfersInProgress(data);
-                    module.transactions = data;
+                let userIdKey = getUserIdKey(type);
+
+                transaction[Symbol.for('blocksChecked')] = 0;
+                transaction[Symbol.for('checkTransaction')] = () => {};
+                transaction[Symbol.for('transactionType')] = type;
+                transaction[Symbol.for('userId')] = _.get(transaction, `returnValues.${userIdKey}`);
+                transaction[Symbol.for('status')] = getCommonTransactionResponse(transaction, RESPONSE_STATUS_SUCCESS);
+                if (!module.isTransactionExist(transaction)) {
+                    this.notifyTransfersInProgress(transaction, RESPONSE_STATUS_SUCCESS);
+                    module.transactions = transaction;
                 }
             }
         }).on('error', console.error);
 
-        transferLatest.on('data', (data, error) => {
+        transferLatest.on('data', (transaction, error) => {
             console.info(`On Transfer LATEST ${type}`, error);
             if (!error) {
-                data[Symbol.for('blocksChecked')] = 0;
-                data[Symbol.for('checkTransaction')] = this.checkTransaction.bind(this, data);
-                data[Symbol.for('transactionType')] = type;
-                module.updateTransactionMined = data;
+                let userIdKey = getUserIdKey(type);
+
+                transaction[Symbol.for('blocksChecked')] = 0;
+                transaction[Symbol.for('checkTransaction')] = this.checkTransaction.bind(this, transaction);
+                transaction[Symbol.for('transactionType')] = type;
+                transaction[Symbol.for('userId')] = _.get(transaction, `returnValues.${userIdKey}`);
+                transaction[Symbol.for('status')] = getCommonTransactionResponse(transaction, RESPONSE_STATUS_SUCCESS);
+                module.updateTransactionMined = transaction;
             }
         }).on('error', console.error);
     }
 
-//TODO: need to re-develop
-    getTransfersInProgress({request, response}) {
-        const { clientId } = request;
-        const transfers = [];
-        const userTransactions = _.filter(module.transactions, (transaction) =>
-            _.get(transaction, 'returnValues.from') === clientId || _.get(transaction, 'returnValues.to') === clientId
-        );
-
-        userTransactions.forEach((transaction) => {
-            const { percentage, event } = transaction;
-            transfers.push({
-                percentage: percentage || 0,
-                event
-            });
-        });
-
-        response.data.response = transfers;
-        response.data.status = RESPONSE_STATUS_SUCCESS;
-
-        module.sendResponseToClient(response);
-    }
-
-    notifyTransfersInProgress(transaction) {
-        const transactionType = transaction[Symbol.for('transactionType')];
-        let userIdKey = null;
-
-        switch (transactionType) {
-            case DEPOSIT_TRANSACTION:
-                userIdKey = 'from';
-                break;
-            case WITHDRAWAL_TRANSACTION:
-                userIdKey = 'to';
-                break;
-            case SUBSCRIPTION_TRANSACTION:
-                userIdKey = 'buyer';
-                break;
-            default:
-                console.warn('notifyTransfersInProgress: Unexpected Transfer type');
-        }
-
-        const userId = _.get(transaction, `returnValues.${userIdKey}`);
-        const response = getCommonTransactionResponse(transaction, userId);
-
-        module.sendResponseToClients(response);
-    }
-
-    async checkTransaction(transaction, newBlockNumber) {
+    async checkTransaction(transaction) {
         const { transactionHash, blockHash, blockNumber } = transaction;
         let blocksChecked = transaction[Symbol.for('blocksChecked')];
         const transactionReceipt = await getTransactionReceipt(transactionHash);
 
         if (transactionReceipt) {
-            const { blockHash:blockHashReceipt, blockNumber:blockNumberReceipt, status:statusReceipt } = transactionReceipt;
+            const { blockHash: blockHashReceipt, blockNumber: blockNumberReceipt, status: statusReceipt } = transactionReceipt;
 
             if (!Number(statusReceipt)) {
                 console.warn('transaction failed');
                 module.removeTransaction(transaction);
                 return false;
             }
+            console.info('Blocks info:');
+            console.log('blockHash', blockHash, blockHashReceipt);
+            console.log('blockNumber', blockNumber, blockNumberReceipt);
 
             if (blockHash !== blockHashReceipt || blockNumber !== blockNumberReceipt) {
                 transaction[Symbol.for('blocksChecked')] = 1;
@@ -154,16 +119,27 @@ export default class TransferListenerController {
                 transaction[Symbol.for('blocksChecked')] = ++blocksChecked;
             }
 
-            this.notifyTransfersInProgress(transaction);
+            transaction[Symbol.for('status')] = getCommonTransactionResponse(transaction);
+            this.notifyTransfersInProgress(transaction, RESPONSE_STATUS_SUCCESS);
 
             if (blocksChecked === sufficientConfirmations) {
                 console.info('TRANSACTION COMPLETE');
                 module.removeTransaction(transaction);
             }
-
-            console.log(blocksChecked, newBlockNumber);
-            // this.notifyTransfersInProgress(transaction);
         }
+    }
+
+    notifyTransfersInProgress(transaction, status) {
+        const response = {
+            userId: transaction[Symbol.for('userId')],
+            data: {
+                status,
+                command: WEB3_ACTION_NOTIFICATION_TRANSFER,
+                response: transaction[Symbol.for('status')]
+            }
+        };
+
+        module.sendResponseToClients(response);
     }
 
 }
@@ -180,20 +156,21 @@ function getTransactionReceipt(transactionId) {
     });
 }
 
+function getUserIdKey(transactionType) {
+    let userIdKey = null;
+    switch (transactionType) {
+        case DEPOSIT_TRANSACTION:
+            userIdKey = 'from';
+            break;
+        case WITHDRAWAL_TRANSACTION:
+            userIdKey = 'to';
+            break;
+        case SUBSCRIPTION_TRANSACTION:
+            userIdKey = 'buyer';
+            break;
+        default:
+            console.warn('notifyTransfersInProgress: Unexpected Transfer type');
+    }
 
-function getCommonTransactionResponse(transaction, userId) {
-    return {
-        userId,
-        data: {
-            status: RESPONSE_STATUS_SUCCESS,
-            command: WEB3_ACTION_NOTIFICATION_TRANSFER,
-            response: {
-                event: transaction[Symbol.for('transactionType')],
-                confNum: transaction[Symbol.for('blocksChecked')],
-                confMax: sufficientConfirmations,
-                transactionHash: transaction.transactionHash,
-                userId
-            }
-        }
-    };
+    return userIdKey;
 }
