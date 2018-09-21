@@ -1,14 +1,11 @@
 import Web3Service from 'communicationServices/web3';
 import EventBus from 'common/EventBus';
-import _ from 'lodash';
 
 const IPC_CONNECTION_CLOSED = 'Error: IPC socket connection closed';
 const IPC_COULD_NOT_CONNECT = 'Error: CONNECTION ERROR: Couldn\'t connect to node on IPC.';
 const CONNECTION_ERRORS = [IPC_CONNECTION_CLOSED, IPC_COULD_NOT_CONNECT];
 
 let webServices = null;
-let transactionsList = [];
-let waitForUnlockRequests = [];
 
 export default class BaseWeb3 {
 
@@ -29,7 +26,7 @@ export default class BaseWeb3 {
             if (!error) {
                 resolve();
                 EventBus.emit('Web3ConnectionStatus', true);
-                this.checkTransactions(data);
+                EventBus.emit('Web3NewBlockHeaders', data);
             } else {
                 this.connectionErrorHandling(subscription, error.toString(), resolve);
             }
@@ -52,57 +49,6 @@ export default class BaseWeb3 {
         }
     }
 
-    checkTransactions({number}) {
-
-        this.transactions.forEach((transaction) => {
-            typeof transaction[Symbol.for('checkTransaction')] === 'function' && transaction[Symbol.for('checkTransaction')](number);
-        });
-
-    }
-
-    removeTransaction({transactionHash}) {
-        let transactionIndex = -1;
-
-        for (let i = 0; i < this.transactions.length; i++) {
-            if (transactionHash === this.transactions[i].transactionHash) {
-                transactionIndex = i;
-                break;
-            }
-        }
-
-        if (~transactionIndex) {
-            updateTransactionList([...this.transactions.slice(0, transactionIndex), ...this.transactions.slice(transactionIndex+1)]);
-        }
-    }
-
-    isTransactionExist(transaction) {
-        return !!transactionsList.find( ({transactionHash}) => transactionHash === transaction.transactionHash);
-    }
-
-    clearWaitForUnlockRequests() {
-        waitForUnlockRequests = [];
-    }
-
-    set updateTransactionMined(transaction) {
-        const index = _.findIndex(transactionsList, ({transactionHash}) => transactionHash === transaction.transactionHash);
-
-        if (~index) {
-            transactionsList[index] = transaction;
-        }
-    }
-
-    set transactions(transaction) {
-
-        if (!transactionsList.find(({transactionHash}) => transactionHash === transaction.transactionHash)) {
-            transactionsList.push(transaction);
-        }
-        console.info('Transactions amount: ', transactionsList.length);
-    }
-
-    get transactions() {
-        return transactionsList;
-    }
-
     get eth() {
         return webServices.web3.eth;
     }
@@ -115,17 +61,4 @@ export default class BaseWeb3 {
         return webServices.web3.utils;
     }
 
-    get waitForUnlockRequests() {
-        return waitForUnlockRequests;
-    }
-
-    set waitForUnlockRequests(request) {
-        waitForUnlockRequests.push(request);
-    }
-
-}
-
-function updateTransactionList(filteredTransactionData) {
-    transactionsList = filteredTransactionData;
-    console.info('transactionsList amount', transactionsList.length);
 }

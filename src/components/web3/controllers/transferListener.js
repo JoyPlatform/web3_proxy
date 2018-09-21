@@ -1,10 +1,9 @@
 import { getTokenContract } from '../contracts/token';
 import { getSubscriptionContract } from '../contracts/subscription';
 import { getDepositAddress } from '../contracts/deposit';
-import { RESPONSE_STATUS_SUCCESS } from 'constants/messageStatuses';
-import {WEB3_ACTION_NOTIFICATION_TRANSFER} from 'constants/messageActions';
 import { ETHConfiguration } from 'configs/';
 import { getCommonTransactionResponse } from '../responses';
+import { getTransactionReceipt, notifyTransfersInProgress } from './transfer';
 import _ from 'lodash';
 
 let module = null;
@@ -26,6 +25,8 @@ export default class TransferListenerController {
             this.getTransferEvent(DEPOSIT_TRANSACTION, fromBlock);
             this.getTransferEvent(WITHDRAWAL_TRANSACTION, fromBlock);
             this.getTransferEvent(SUBSCRIPTION_TRANSACTION, fromBlock);
+        }).catch((e) => {
+            console.error('registerTransfers getBlockNumber', e);
         });
     }
 
@@ -70,13 +71,14 @@ export default class TransferListenerController {
                 let userIdKey = getUserIdKey(type);
 
                 transaction[Symbol.for('blocksChecked')] = 0;
-                transaction[Symbol.for('checkTransaction')] = () => {};
+                // transaction[Symbol.for('checkTransaction')] = true;
                 transaction[Symbol.for('transactionType')] = type;
                 transaction[Symbol.for('userId')] = _.get(transaction, `returnValues.${userIdKey}`);
-                transaction[Symbol.for('status')] = getCommonTransactionResponse(transaction, RESPONSE_STATUS_SUCCESS);
+                transaction[Symbol.for('status')] = getCommonTransactionResponse(transaction);
+                transaction.status = 1;
                 if (!module.isTransactionExist(transaction)) {
-                    this.notifyTransfersInProgress(transaction, RESPONSE_STATUS_SUCCESS);
-                    module.transactions = transaction;
+                    notifyTransfersInProgress(transaction);
+                    module.addTransaction(transaction);
                 }
             }
         }).on('error', console.error);
@@ -90,8 +92,8 @@ export default class TransferListenerController {
                 transaction[Symbol.for('checkTransaction')] = this.checkTransaction.bind(this, transaction);
                 transaction[Symbol.for('transactionType')] = type;
                 transaction[Symbol.for('userId')] = _.get(transaction, `returnValues.${userIdKey}`);
-                transaction[Symbol.for('status')] = getCommonTransactionResponse(transaction, RESPONSE_STATUS_SUCCESS);
-                module.updateTransactionMined = transaction;
+                transaction[Symbol.for('status')] = getCommonTransactionResponse(transaction);
+                module.updateTransactionMined(transaction);
             }
         }).on('error', console.error);
     }
@@ -103,15 +105,16 @@ export default class TransferListenerController {
 
         if (transactionReceipt) {
             const { blockHash: blockHashReceipt, blockNumber: blockNumberReceipt, status: statusReceipt } = transactionReceipt;
-
+            transaction.status = Number(statusReceipt);
             if (!Number(statusReceipt)) {
                 console.warn('transaction failed');
+                notifyTransfersInProgress(transaction);
                 module.removeTransaction(transaction);
                 return false;
             }
-            console.info('Blocks info:');
-            console.log('blockHash', blockHash, blockHashReceipt);
-            console.log('blockNumber', blockNumber, blockNumberReceipt);
+            // console.info('Blocks info:');
+            // console.log('blockHash', blockHash, blockHashReceipt);
+            // console.log('blockNumber', blockNumber, blockNumberReceipt);
 
             if (blockHash !== blockHashReceipt || blockNumber !== blockNumberReceipt) {
                 transaction[Symbol.for('blocksChecked')] = 1;
@@ -120,7 +123,7 @@ export default class TransferListenerController {
             }
 
             transaction[Symbol.for('status')] = getCommonTransactionResponse(transaction);
-            this.notifyTransfersInProgress(transaction, RESPONSE_STATUS_SUCCESS);
+            notifyTransfersInProgress(transaction);
 
             if (blocksChecked === sufficientConfirmations) {
                 console.info('TRANSACTION COMPLETE');
@@ -128,32 +131,6 @@ export default class TransferListenerController {
             }
         }
     }
-
-    notifyTransfersInProgress(transaction, status) {
-        const response = {
-            userId: transaction[Symbol.for('userId')],
-            data: {
-                status,
-                command: WEB3_ACTION_NOTIFICATION_TRANSFER,
-                response: transaction[Symbol.for('status')]
-            }
-        };
-
-        module.sendResponseToClients(response);
-    }
-
-}
-
-function getTransactionReceipt(transactionId) {
-    return new Promise((resolve) => {
-        module.eth.getTransactionReceipt(transactionId, (error, response) => {
-            if (error) {
-                resolve(false);
-            } else {
-                resolve(response);
-            }
-        });
-    });
 }
 
 function getUserIdKey(transactionType) {

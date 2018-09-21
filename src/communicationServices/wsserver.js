@@ -96,7 +96,10 @@ export default class WebSocketServer {
 
         if (!forAll) {
             clients = this.getClientsById(userId);
+        } else {
+            clients = this.wsclients;
         }
+
 
         console.log('clients.length', clients.length);
         clients.forEach((client) => {

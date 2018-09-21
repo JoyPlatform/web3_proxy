@@ -21,17 +21,10 @@ export function getETHBalanceLocationDoesNotExistResponse({currency, location}) 
 
 export function getCommonTransactionResponse(transaction) {
     return {
-        // userId: transaction[Symbol.for('userId')],
-        // data: {
-        //     status,
-        //     command: WEB3_ACTION_NOTIFICATION_TRANSFER,
-        //     response: {
-                event: transaction[Symbol.for('transactionType')],
-                confNum: transaction[Symbol.for('blocksChecked')],
-                confMax: sufficientConfirmations,
-                transactionHash: transaction.transactionHash,
-                userId: transaction[Symbol.for('userId')]
-            // }
-        // }
+        event: transaction[Symbol.for('transactionType')],
+        confNum: transaction[Symbol.for('blocksChecked')],
+        confMax: sufficientConfirmations,
+        transactionHash: transaction.transactionHash,
+        userId: transaction[Symbol.for('userId')]
     };
 }

@@ -28,27 +28,30 @@ export default class OwnerController {
         this.executeOwnerTransactions();
     }
 
-    async executeOwnerTransactions() {
+    executeOwnerTransactions() {
 
         if (isOwnerAccountLocked && waitForUnlockRequests.length) {
             isOwnerAccountLocked = false;
+            module.eth.getBlockNumber().then(async (fromBlock) => {
+                isOwnerAccountLocked = await this.unlockOwnerAccount(500)
+                    .then((isAccountUnlocked) => {
+                        return !isAccountUnlocked;
+                    }).catch((e) => {
+                        console.log('unlockOwnerAccount', e);
+                    });
 
-            isOwnerAccountLocked = await this.unlockOwnerAccount(500)
-                .then((isAccountUnlocked) => {
-                    return !isAccountUnlocked;
-                }).catch((e) => {
-                    console.log(e);
-                });
-
-            for (let i = 0; i < 100; i++ ) {
-                if (i < waitForUnlockRequests.length) {
-                    transactionsAmount++;
-                    const { params, controller, method } = waitForUnlockRequests.shift();
-                    controller[method](params);
-                } else {
-                    break;
+                for (let i = 0; i < 100; i++ ) {
+                    if (i < waitForUnlockRequests.length) {
+                        transactionsAmount++;
+                        const { params, controller, method } = waitForUnlockRequests.shift();
+                        controller[method](params, fromBlock);
+                    } else {
+                        break;
+                    }
                 }
-            }
+            }).catch((e) => {
+                console.error('executeOwnerTransactions getBlockNumber', e);
+            });
         }
     }
 
@@ -57,6 +60,8 @@ export default class OwnerController {
             isOwnerAccountLocked = await this.lockOwnerAccount()
                 .then((isAccountLocked) => {
                     return isAccountLocked;
+                }).catch((e) => {
+                    console.error('lockOwnerAccount', e);
                 });
 
             this.executeOwnerTransactions();
