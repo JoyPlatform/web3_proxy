@@ -1,7 +1,10 @@
 import _ from 'lodash';
 import { RESPONSE_STATUS_SUCCESS, RESPONSE_STATUS_ERROR } from 'constants/messageStatuses';
 import { WEB3_ACTION_NOTIFICATION_TRANSFER } from 'constants/messageActions';
+import {getCommonTransactionResponse} from 'components/web3/responses';
+import { ETHConfiguration } from 'configs/';
 
+const { sufficientConfirmations } = ETHConfiguration;
 let transactionsList = {};
 let waitForUnlockRequests = [];
 let isForceTransactionsChecking = false;
@@ -30,13 +33,62 @@ export default class TransferController {
         module.sendResponseToClient(response);
     }
 
+    async checkTransaction(transaction, number) {
+        transaction[Symbol.for('checking')] = true;
+        const { transactionHash, blockHash, blockNumber } = transaction;
+        const transactionReceipt = await getTransactionReceipt(transactionHash);
+
+        if (transactionReceipt) {
+            const { blockHash: blockHashReceipt, blockNumber: blockNumberReceipt, status: statusReceipt } = transactionReceipt;
+
+            if (!Number(blockHash) && Number(blockHashReceipt)) {
+                module.updateTransactionMined(Object.assign(transaction, {...transactionReceipt}));
+                if (Number(statusReceipt)) {
+                    transaction[Symbol.for('checking')] = false;
+                    return;
+                }
+            }
+
+            transaction.status = Number(statusReceipt);
+            if (!Number(statusReceipt)) {
+                console.warn('transaction failed');
+                notifyTransfersInProgress(transaction);
+                module.removeTransaction(transaction);
+                return false;
+            }
+            // console.info('Blocks info:');
+            // console.log('blockHash', blockHash, blockHashReceipt);
+            // console.log('blockNumber', blockNumber, blockNumberReceipt);
+
+            if (blockHash !== blockHashReceipt || blockNumber !== blockNumberReceipt) {
+                transaction[Symbol.for('blocksChecked')] = 1;
+                module.updateTransactionMined(Object.assign(transaction, {...transactionReceipt}));
+            } else {
+                transaction[Symbol.for('blocksChecked')] = number - blockNumber;
+            }
+
+            transaction[Symbol.for('status')] = getCommonTransactionResponse(transaction);
+            notifyTransfersInProgress(transaction);
+
+            if (transaction[Symbol.for('blocksChecked')] === sufficientConfirmations) {
+                console.info('TRANSACTION COMPLETE');
+                module.removeTransaction(transaction);
+            } else {
+                transaction[Symbol.for('checking')] = false;
+            }
+        } else {
+            transaction[Symbol.for('checking')] = false;
+        }
+    }
+
     checkTransactions({number}) {
         let needToForceCheck = false;
         let index = 0;
 
         _.forEach(this.transactions, (transaction) => {
-            typeof transaction[Symbol.for('checkTransaction')] === 'function' && transaction[Symbol.for('checkTransaction')](number);
-            const diff = 50 + index / 10;
+            // typeof transaction[Symbol.for('checkTransaction')] === 'function' && transaction[Symbol.for('checkTransaction')](number);
+            !transaction[Symbol.for('checking')] && this.checkTransaction(transaction, number);
+            const diff = 50 + index / 20;
 
             if (!transaction[Symbol.for('blockDiff')]) {
                 transaction[Symbol.for('blockDiff')] = diff;
@@ -46,11 +98,11 @@ export default class TransferController {
             index++;
         });
 
-        console.log(needToForceCheck);
-        if (needToForceCheck) {
-
-            this.forceCheckFailedTransactions(number);
-        }
+        console.log('needToForceCheck', needToForceCheck);
+        // if (needToForceCheck) {
+        //
+        //     this.forceCheckFailedTransactions(number);
+        // }
     }
 
     forceCheckFailedTransactions(blockNumber) {
@@ -129,7 +181,7 @@ console.log(transactionReceipt, blockNumber, transaction.blockNumber, transactio
     }
 }
 
-export function getTransactionReceipt(transactionId) {
+function getTransactionReceipt(transactionId) {
     return new Promise((resolve) => {
         module.eth.getTransactionReceipt(transactionId).then((response) => {
             resolve(response);

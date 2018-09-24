@@ -3,6 +3,7 @@ import EventBus from 'common/EventBus';
 import CheckSchema from './schemas';
 import { serverConfiguration } from 'configs/';
 import { RESPONSE_STATUS_ERROR } from 'constants/messageStatuses';
+import { CLIENT_ACTION_CONNECTION_TO_ETH } from 'constants/messageActions';
 import { ERROR_INAPPROPRIATE_REQUEST_MESSAGE_FORMAT } from 'constants/errors';
 import _ from 'lodash';
 
@@ -52,6 +53,12 @@ export default class WebSocketServer {
         };
         wsclient.on('message', wsclient::this.message);
         wsclient.on('error', wsclient::this.error);
+
+        const command = CLIENT_ACTION_CONNECTION_TO_ETH;
+        const response = {wsclient, data: {command: `${command}_Res`, status: RESPONSE_STATUS_ERROR}};
+        const request = {command, data: {}};
+
+        EventBus.emit('onMessage', request, response);
     }
 
     message(clientRequest) {

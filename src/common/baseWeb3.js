@@ -20,32 +20,36 @@ export default class BaseWeb3 {
     }
 
     connectToIPC(resolve) {
-        webServices = new Web3Service();
+        if (webServices === null) {
+            webServices = new Web3Service();
+        }
 
-        const subscription = this.eth.subscribe('newBlockHeaders', (error, data) => {
-            if (!error) {
-                resolve();
-                EventBus.emit('Web3ConnectionStatus', true);
-                EventBus.emit('Web3NewBlockHeaders', data);
-            } else {
-                this.connectionErrorHandling(subscription, error.toString(), resolve);
-            }
+        this.eth.isSyncing().then((data) => {
+            console.log('isSyncing', data);
+            this.eth.subscribe('newBlockHeaders', (error, data) => {
+                if (!error) {
+                    resolve();
+                    EventBus.emit('Web3ConnectionStatus', true);
+                    EventBus.emit('Web3NewBlockHeaders', data);
+                } else {
+                    this.connectionErrorHandling(error.toString(), resolve);
+                }
+            });
+        }).catch((error) => {
+            console.error('isSyncing', error);
+            this.connectionErrorHandling(error.toString(), resolve);
         });
     }
 
-    connectionErrorHandling(subscription, error, resolve) {
+    connectionErrorHandling(error, resolve) {
+        console.warn('Disconnected from ETH', error);
         if (CONNECTION_ERRORS.values(error)) {
             EventBus.emit('Web3ConnectionStatus', false);
-            if (IPC_COULD_NOT_CONNECT === error) {
+            // if (IPC_COULD_NOT_CONNECT === error) {
                 setTimeout(() => {
-                    subscription.unsubscribe(function(error, success) {
-                        if (success) {
-                            console.log('Successfully unsubscribed!');
-                        }
-                    });
                     this.connectToIPC(resolve);
                 }, 5000);
-            }
+            // }
         }
     }
 

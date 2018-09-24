@@ -21,9 +21,17 @@ export default class Web3 extends BaseWeb3 {
     }
 
     async initialize() {
+        this.onNewClientHandler();
         await this.initWeb3Services();
         this.initComponents();
         this.initEventListeners();
+    }
+
+    onNewClientHandler() {
+        EventBus.on('Web3ConnectionStatusForNewClient', ({response}) => {
+            response.data.status = Number(!this.connectionStatus);
+            this.sendResponseToClient(response);
+        });
     }
 
     initComponents() {
@@ -41,11 +49,11 @@ export default class Web3 extends BaseWeb3 {
             if (this.connectionStatus !== connectionStatus) {
                 this.connectionStatus = connectionStatus;
                 console.info('SEND TO ALL CLIENTS NEW CONNECTION STATUS', connectionStatus);
-                // connectionStatus && this.transferListenerController.registerTransfers();
+                connectionStatus && this.transferListenerController.registerTransfers();
                 const response = {
                     data: {
-                        status: Number(!connectionStatus),
-                        command: WEB3_CONNECTION_TO_ETH
+                        command: WEB3_CONNECTION_TO_ETH,
+                        status: Number(!connectionStatus)
                     }
                 };
                 this.sendResponseToClients(response, true);

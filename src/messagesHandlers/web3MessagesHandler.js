@@ -1,5 +1,6 @@
 import EventBus from '../common/EventBus';
 import {
+    CLIENT_ACTION_CONNECTION_TO_ETH,
     CLIENT_ACTION_GET_BALANCES,
     CLIENT_ACTION_GET_CONFIGURATION_DATA,
     CLIENT_ACTION_GET_TRANSFERS_IN_PROGRESS,
@@ -27,6 +28,9 @@ export default function ethMessagesHandler({method, request, response}) {
             break;
         case CLIENT_ACTION_TRANSFER_FROM_GAME:
             EventBus.emit('Web3TransferFromGame', {request, response});
+            break;
+        case CLIENT_ACTION_CONNECTION_TO_ETH:
+            EventBus.emit('Web3ConnectionStatusForNewClient', {request, response});
             break;
         default:
             EventBus.emit('incorrectRequestedCommand', {response, command: method});
