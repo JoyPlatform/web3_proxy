@@ -28,30 +28,26 @@ export default class OwnerController {
         this.executeOwnerTransactions();
     }
 
-    executeOwnerTransactions() {
+    async executeOwnerTransactions() {
 
         if (isOwnerAccountLocked && waitForUnlockRequests.length) {
             isOwnerAccountLocked = false;
-            module.eth.getBlockNumber().then(async (fromBlock) => {
-                isOwnerAccountLocked = await this.unlockOwnerAccount(500)
-                    .then((isAccountUnlocked) => {
-                        return !isAccountUnlocked;
-                    }).catch((e) => {
-                        console.log('unlockOwnerAccount', e);
-                    });
+            isOwnerAccountLocked = await this.unlockOwnerAccount(500)
+                .then((isAccountUnlocked) => {
+                    return !isAccountUnlocked;
+                }).catch((e) => {
+                    console.log('unlockOwnerAccount', e);
+                });
 
-                for (let i = 0; i < 100; i++ ) {
-                    if (i < waitForUnlockRequests.length) {
-                        transactionsAmount++;
-                        const { params, controller, method } = waitForUnlockRequests.shift();
-                        controller[method](params, fromBlock);
-                    } else {
-                        break;
-                    }
+            for (let i = 0; i < 100; i++ ) {
+                if (i < waitForUnlockRequests.length) {
+                    transactionsAmount++;
+                    const { params, controller, method } = waitForUnlockRequests.shift();
+                    controller[method](params, module.currentBlockNumber);
+                } else {
+                    break;
                 }
-            }).catch((e) => {
-                console.error('executeOwnerTransactions getBlockNumber', e);
-            });
+            }
         }
     }
 

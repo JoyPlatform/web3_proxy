@@ -183,3 +183,43 @@ export const getTransferFromGameSchema = {
         }
     }
 };
+
+export const getTransactionStatusSchema = {
+    '$id': 'getTransactionStatusSchema',
+    'type': 'object',
+    'required': [ 'command', 'data' ],
+    'properties': {
+        'command': {
+            'type': 'string',
+            'minLength': 1
+        },
+        'data': {
+            'type': 'object',
+            'oneOf': [{
+                'properties': {
+                    'transactionHash': {
+                        'type': 'string',
+                        'minLength': 1
+                    }
+                },
+                'required': ['transactionHash']
+            },{
+                'properties': {
+                    'transactionsHash': {
+                        'type': 'array',
+                        'minItems': 1,
+                        'items': {
+                            'allOf': [
+                                {
+                                    'type': 'string',
+                                    'minLength': 1
+                                }
+                            ]
+                        }
+                    }
+                },
+                'required': ['transactionsHash']
+            }]
+        }
+    }
+};

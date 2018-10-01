@@ -64,14 +64,15 @@ export default class Web3 extends BaseWeb3 {
         EventBus.on('Web3Balances', this.balanceComponent::this.balanceComponent.getBalances);
         EventBus.on('Web3GetConfigurationData', this.configurationController::this.configurationController.getBaseConfiguration);
         EventBus.on('Web3GetTransfersInProgress', this.transferController::this.transferController.getTransfersInProgress);
+        EventBus.on('Web3TransactionStatus', this.transferController::this.transferController.getTransactionStatus);
         EventBus.on('Web3TopUpTokens', this.addToOwnerTransactionsList.bind(this, this.transferExecuteController, 'topUpTokens'));
         EventBus.on('Web3TransferToGame', this.addToOwnerTransactionsList.bind(this, this.transferExecuteController, 'transferToGame'));
         EventBus.on('Web3TransferFromGame', this.addToOwnerTransactionsList.bind(this, this.transferExecuteController, 'transferFromGame'));
         EventBus.on('Web3NewBlockHeaders', ::this.onNewBlockHeaders);
     }
 
-    onNewBlockHeaders(block) {
-        this.transferController.checkTransactions(block);
+    onNewBlockHeaders(blockNumber) {
+        this.transferController.checkTransactions(blockNumber);
         console.info('Transactions in Progress: ', Object.keys(this.transferController.transactions).length);
     }
 

@@ -6,6 +6,7 @@ const IPC_COULD_NOT_CONNECT = 'Error: CONNECTION ERROR: Couldn\'t connect to nod
 const CONNECTION_ERRORS = [IPC_CONNECTION_CLOSED, IPC_COULD_NOT_CONNECT];
 
 let webServices = null;
+let currentBlockNumber = 0;
 
 export default class BaseWeb3 {
 
@@ -26,11 +27,12 @@ export default class BaseWeb3 {
 
         this.eth.isSyncing().then((data) => {
             console.log('isSyncing', data);
-            this.eth.subscribe('newBlockHeaders', (error, data) => {
+            this.eth.subscribe('newBlockHeaders', (error, { number }) => {
                 if (!error) {
                     resolve();
+                    currentBlockNumber = number;
                     EventBus.emit('Web3ConnectionStatus', true);
-                    EventBus.emit('Web3NewBlockHeaders', data);
+                    EventBus.emit('Web3NewBlockHeaders', number);
                 } else {
                     this.connectionErrorHandling(error.toString(), resolve);
                 }
@@ -63,6 +65,10 @@ export default class BaseWeb3 {
 
     get utils() {
         return webServices.web3.utils;
+    }
+
+    get currentBlockNumber() {
+        return currentBlockNumber;
     }
 
 }

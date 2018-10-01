@@ -4,7 +4,8 @@ import {
     CLIENT_ACTION_AUTH_USER, CLIENT_ACTION_ADD_USERS, CLIENT_ACTION_GET_BALANCES,
     CLIENT_ACTION_GET_CONFIGURATION_DATA, CLIENT_ACTION_TOP_UP_TOKENS,
     CLIENT_ACTION_TRANSFER_TO_GAME, CLIENT_ACTION_TRANSFER_FROM_GAME,
-    CLIENT_ACTION_GET_WEB3_PROXY_VERSION, CLIENT_ACTION_GET_TRANSFERS_IN_PROGRESS
+    CLIENT_ACTION_GET_WEB3_PROXY_VERSION, CLIENT_ACTION_GET_TRANSFERS_IN_PROGRESS,
+    CLIENT_ACTION_GET_TRANSACTION_STATUS
 } from 'constants/messageActions';
 import {
     getAuthSchema,
@@ -12,7 +13,8 @@ import {
     getUsersSchema,
     getEmptyDataSchema,
     getTopUpTokensSchema,
-    getTransferFromGameSchema
+    getTransferFromGameSchema,
+    getTransactionStatusSchema
 } from './schemas';
 
 const ajv = new Ajv({allErrors: true});
@@ -22,6 +24,7 @@ const getAuthSchemaValidator = ajv.compile(getAuthSchema);
 const getBalancesSchemaValidator = ajv.compile(getBalancesSchema);
 const getTopUpTokensSchemaValidator = ajv.compile(getTopUpTokensSchema);
 const getTransferFromGameSchemaValidator = ajv.compile(getTransferFromGameSchema);
+const getTransactionStatusSchemaValidator = ajv.compile(getTransactionStatusSchema);
 
 export default function checkSchema(data) {
     const method = _.get(data, 'command', '');
@@ -42,6 +45,8 @@ export default function checkSchema(data) {
             return getTopUpTokensSchemaValidator(data);
         case CLIENT_ACTION_TRANSFER_FROM_GAME:
             return getTransferFromGameSchemaValidator(data);
+        case CLIENT_ACTION_GET_TRANSACTION_STATUS:
+            return getTransactionStatusSchemaValidator(data);
         default:
             return false;
     }

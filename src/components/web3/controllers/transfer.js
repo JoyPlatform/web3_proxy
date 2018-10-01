@@ -6,14 +6,38 @@ import { ETHConfiguration } from 'configs/';
 
 const { sufficientConfirmations } = ETHConfiguration;
 let transactionsList = {};
-let waitForUnlockRequests = [];
-let isForceTransactionsChecking = false;
 let module = null;
 
 export default class TransferController {
 
     constructor(baseModule) {
         module = baseModule;
+    }
+
+    getTransactionStatus({request, response}) {
+        const { transactionHash, transactionsHash } = request;
+        let transactions = transactionsHash;
+
+        if (transactionHash) {
+            transactions = [transactionHash];
+        }
+        response.data.response = [];
+        transactions.forEach(async (transaction, index) => {
+            const transactionReceipt = await getTransactionReceipt(transaction);
+            const blocksChecked = module.currentBlockNumber - transactionReceipt.blockNumber;
+
+            response.data.status = RESPONSE_STATUS_SUCCESS;
+            response.data.response.push({
+                status: Number(transactionReceipt.status) ? RESPONSE_STATUS_SUCCESS : RESPONSE_STATUS_ERROR,
+                transactionHash: transaction,
+                confNum: blocksChecked >= sufficientConfirmations ? sufficientConfirmations : blocksChecked,
+                confMax: sufficientConfirmations
+            });
+
+            if (transactions.length - 1 === index) {
+                module.sendResponseToClient(response);
+            }
+        });
     }
 
     getTransfersInProgress({request, response}) {
@@ -56,9 +80,6 @@ export default class TransferController {
                 module.removeTransaction(transaction);
                 return false;
             }
-            // console.info('Blocks info:');
-            // console.log('blockHash', blockHash, blockHashReceipt);
-            // console.log('blockNumber', blockNumber, blockNumberReceipt);
 
             if (blockHash !== blockHashReceipt || blockNumber !== blockNumberReceipt) {
                 transaction[Symbol.for('blocksChecked')] = 1;
@@ -81,58 +102,24 @@ export default class TransferController {
         }
     }
 
-    checkTransactions({number}) {
+    checkTransactions(blockNumber) {
         let needToForceCheck = false;
         let index = 0;
 
         _.forEach(this.transactions, (transaction) => {
             // typeof transaction[Symbol.for('checkTransaction')] === 'function' && transaction[Symbol.for('checkTransaction')](number);
-            !transaction[Symbol.for('checking')] && this.checkTransaction(transaction, number);
+            !transaction[Symbol.for('checking')] && this.checkTransaction(transaction, blockNumber);
             const diff = 50 + index / 20;
 
             if (!transaction[Symbol.for('blockDiff')]) {
                 transaction[Symbol.for('blockDiff')] = diff;
             }
 
-            needToForceCheck = number - transaction.blockNumber >= transaction[Symbol.for('blockDiff')];
+            needToForceCheck = blockNumber - transaction.blockNumber >= transaction[Symbol.for('blockDiff')];
             index++;
         });
 
         console.log('needToForceCheck', needToForceCheck);
-        // if (needToForceCheck) {
-        //
-        //     this.forceCheckFailedTransactions(number);
-        // }
-    }
-
-    forceCheckFailedTransactions(blockNumber) {
-        if (isForceTransactionsChecking) {
-            return false;
-        }
-
-        isForceTransactionsChecking = true;
-        console.info('isForceTransactionsChecking', isForceTransactionsChecking);
-        let amount = Object.keys(this.transactions).length;
-        _.forEach(this.transactions, async (transaction) => {
-            const { transactionHash } = transaction;
-            const transactionReceipt = await getTransactionReceipt(transactionHash);
-console.log(transactionReceipt, blockNumber, transaction.blockNumber, transaction[Symbol.for('blockDiff')]);
-            if (
-                transactionReceipt && !Number(_.get(transactionReceipt, 'status')) ||
-                transactionReceipt === null && blockNumber && blockNumber - transaction.blockNumber >= transaction[Symbol.for('blockDiff')]
-            ) {
-                transaction.status = 0;
-                notifyTransfersInProgress(transaction);
-                this.removeTransaction(transaction);
-            }
-
-            if (--amount === 0) {
-                isForceTransactionsChecking = false;
-                console.info('isForceTransactionsChecking', isForceTransactionsChecking);
-            }
-        });
-
-
     }
 
     removeTransaction({transactionHash}) {
@@ -145,10 +132,6 @@ console.log(transactionReceipt, blockNumber, transaction.blockNumber, transactio
 
     isTransactionExist({transactionHash}) {
         return !_.isEmpty(transactionsList[transactionHash]);
-    }
-
-    clearWaitForUnlockRequests() {
-        waitForUnlockRequests = [];
     }
 
     set updateTransactionMined(transaction) {
@@ -172,13 +155,6 @@ console.log(transactionReceipt, blockNumber, transaction.blockNumber, transactio
         return transactionsList;
     }
 
-    get waitForUnlockRequests() {
-        return waitForUnlockRequests;
-    }
-
-    set waitForUnlockRequests(request) {
-        waitForUnlockRequests.push(request);
-    }
 }
 
 function getTransactionReceipt(transactionId) {

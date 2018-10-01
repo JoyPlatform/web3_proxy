@@ -6,7 +6,8 @@ import {
     CLIENT_ACTION_GET_TRANSFERS_IN_PROGRESS,
     CLIENT_ACTION_TOP_UP_TOKENS,
     CLIENT_ACTION_TRANSFER_FROM_GAME,
-    CLIENT_ACTION_TRANSFER_TO_GAME
+    CLIENT_ACTION_TRANSFER_TO_GAME,
+    CLIENT_ACTION_GET_TRANSACTION_STATUS
 } from 'constants/messageActions';
 
 export default function ethMessagesHandler({method, request, response}) {
@@ -31,6 +32,9 @@ export default function ethMessagesHandler({method, request, response}) {
             break;
         case CLIENT_ACTION_CONNECTION_TO_ETH:
             EventBus.emit('Web3ConnectionStatusForNewClient', {request, response});
+            break;
+        case CLIENT_ACTION_GET_TRANSACTION_STATUS:
+            EventBus.emit('Web3TransactionStatus', {request, response});
             break;
         default:
             EventBus.emit('incorrectRequestedCommand', {response, command: method});
