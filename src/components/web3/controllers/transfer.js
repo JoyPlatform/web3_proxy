@@ -15,6 +15,7 @@ export default class TransferController {
     }
 
     getTransactionStatus({request, response}) {
+        let trCounter = 0;
         const { transactionHash, transactionsHash } = request;
         let transactions = transactionsHash;
 
@@ -22,7 +23,8 @@ export default class TransferController {
             transactions = [transactionHash];
         }
         response.data.response = [];
-        transactions.forEach(async (transaction, index) => {
+
+        transactions.forEach(async (transaction) => {
             const transactionReceipt = await getTransactionReceipt(transaction);
             const blocksChecked = module.currentBlockNumber - transactionReceipt.blockNumber;
 
@@ -34,7 +36,7 @@ export default class TransferController {
                 confMax: sufficientConfirmations
             });
 
-            if (transactions.length - 1 === index) {
+            if (transactions.length === ++trCounter) {
                 module.sendResponseToClient(response);
             }
         });
