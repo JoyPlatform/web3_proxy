@@ -16,17 +16,12 @@ export default class TransferListenerController {
 
     constructor(baseModule) {
         module = baseModule;
-        // this.registerTransfers();
     }
 
     registerTransfers() {
-        // module.eth.getBlockNumber().then((fromBlock) => {
-            this.getTransferEvent(DEPOSIT_TRANSACTION, module.currentBlockNumber);
-            this.getTransferEvent(WITHDRAWAL_TRANSACTION, module.currentBlockNumber);
-            this.getTransferEvent(SUBSCRIPTION_TRANSACTION, module.currentBlockNumber);
-        // }).catch((e) => {
-        //     console.error('registerTransfers getBlockNumber', e);
-        // });
+        this.getTransferEvent(DEPOSIT_TRANSACTION, module.currentBlockNumber);
+        this.getTransferEvent(WITHDRAWAL_TRANSACTION, module.currentBlockNumber);
+        this.getTransferEvent(SUBSCRIPTION_TRANSACTION, module.currentBlockNumber);
     }
 
     getTransferByType(type, fromBlock, toBlock) {

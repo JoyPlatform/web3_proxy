@@ -26,7 +26,14 @@ export default class BaseWeb3 {
         }
 
         this.eth.isSyncing().then((data) => {
-            console.log('isSyncing', data);
+            console.info('isSyncing', !!data);
+            if (data) {
+                setTimeout(() => {
+                    this.connectToIPC(resolve);
+                }, 30000);
+
+                return false;
+            }
             this.eth.subscribe('newBlockHeaders', (error, { number }) => {
                 if (!error) {
                     resolve();
