@@ -2,6 +2,14 @@ const path = require('path');
 const webpack = require('webpack');
 const GitRevisionPlugin = require('git-revision-webpack-plugin')
 const gitRevisionPlugin = new GitRevisionPlugin();
+const contracts = require('./configs/contracts.json');
+let appConfig = null;
+try {
+    appConfig = require('./configs/config.json');
+} catch (e) {
+    console.error('\x1b[31m','Please create config.json file based on base_config.json in configs folder');
+    process.exit(1);
+}
 
 const plugins = [
     new webpack.NormalModuleReplacementPlugin(/^any-promise$/, 'bluebird'),
@@ -11,7 +19,9 @@ const plugins = [
     new webpack.DefinePlugin({
         'VERSION': JSON.stringify(gitRevisionPlugin.version()),
         'COMMITHASH': JSON.stringify(gitRevisionPlugin.commithash()),
-        'BRANCH': JSON.stringify(gitRevisionPlugin.branch())
+        'BRANCH': JSON.stringify(gitRevisionPlugin.branch()),
+        'APP_CONFIG': JSON.stringify(appConfig),
+        'APP_CONTRACTS': JSON.stringify(contracts)
     })
 ];
 

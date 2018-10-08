@@ -7,7 +7,7 @@
   "ETH": {
     "gethSupportedTypes": ["ipc", "ws"],
     "gethProviderType":"ipc",
-    "gethProviderSource":"/Users/mkapravchuk/ipc/geth.ipc",
+    "gethProviderSource":"PATH/TO/geth.ipc",
     "sufficientConfirmations": 5,
     "gasPrice": "8000000000",
 
