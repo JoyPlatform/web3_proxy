@@ -10,8 +10,7 @@ const {
     TransferListenerController,
     TransferExecuteController,
     OwnerController,
-    TransferController,
-    GasController
+    TransferController
 } = Web3Components;
 
 export default class Web3 extends BaseWeb3 {
@@ -21,9 +20,9 @@ export default class Web3 extends BaseWeb3 {
         this.initialize();
     }
 
-    initialize() {
+    async initialize() {
         this.onNewClientHandler();
-        this.initWeb3Services();
+        await this.initWeb3Services();
         this.initComponents();
         this.initEventListeners();
     }
@@ -43,8 +42,6 @@ export default class Web3 extends BaseWeb3 {
         this.transferListenerController = new TransferListenerController(this);
         this.transferExecuteController = new TransferExecuteController(this);
         this.ownerController = new OwnerController(this);
-        this.gasController = new GasController(this);
-        this.gasController.getGasPrice();
     }
 
     initEventListeners() {
@@ -76,7 +73,6 @@ export default class Web3 extends BaseWeb3 {
 
     onNewBlockHeaders(blockNumber) {
         this.transferController.checkTransactions(blockNumber);
-        this.gasController.getGasPrice();
         console.info('Transactions in Progress: ', Object.keys(this.transferController.transactions).length);
     }
 

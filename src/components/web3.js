@@ -5,7 +5,6 @@ import TransferController from './web3/controllers/transfer';
 import TransferListenerController from './web3/controllers/transferListener';
 import TransferExecuteController from './web3/controllers/transferExecute';
 import OwnerController from './web3/controllers/owner';
-import GasController from './web3/controllers/gas';
 
 export default {
     AuthComponent,
@@ -14,6 +13,5 @@ export default {
     TransferController,
     TransferListenerController,
     TransferExecuteController,
-    OwnerController,
-    GasController
+    OwnerController
 };
