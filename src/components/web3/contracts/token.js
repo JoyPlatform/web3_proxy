@@ -10,23 +10,20 @@ export function getTokenAddress() {
     return ContractAddress.joyToken;
 }
 
-function getGasPrice() {
-    return ETHConfiguration.gasPrice;
-}
-
 function getContractOwnerAddress() {
     const { AccountAddress } = ETHConfiguration;
 
     return AccountAddress.contractsOwner;
 }
 
-export function getTokenContract(Contract) {
+export function getTokenContract(Contract, gasPrice) {
+    console.log(gasPrice);
     return new Contract(
         getJoyTokenABI(),
         getTokenAddress(),
         {
             from: getContractOwnerAddress(), // default 'from' address
-            gasPrice: getGasPrice(),
+            gasPrice,
             gas: 1000000 // gas limit - The maximum gas provided for a transaction
         }
     );

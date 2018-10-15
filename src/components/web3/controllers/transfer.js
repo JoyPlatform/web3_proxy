@@ -45,7 +45,7 @@ export default class TransferController {
     getTransfersInProgress({request, response}) {
         const { userIds } = request;
         const transactions = [];
-
+console.info('getTransfersInProgress');
         _.forEach(this.transactions, (transaction) => {
             if (userIds.includes(transaction[Symbol.for('userId')])) {
                 transactions.push(transaction[Symbol.for('status')]);
@@ -107,7 +107,7 @@ export default class TransferController {
     checkTransactions(blockNumber) {
         let needToForceCheck = false;
         let index = 0;
-
+        console.info('checkTransactions');
         _.forEach(this.transactions, (transaction) => {
             // typeof transaction[Symbol.for('checkTransaction')] === 'function' && transaction[Symbol.for('checkTransaction')](number);
             !transaction[Symbol.for('checking')] && this.checkTransaction(transaction, blockNumber);

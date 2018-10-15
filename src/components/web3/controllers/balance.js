@@ -121,7 +121,7 @@ export default class BalanceComponent {
 
     getJoyTokenWorld(address, currency, location) {
         return new Promise((resolve) => {
-            const Token = getTokenContract(module.eth.Contract);
+            const Token = getTokenContract(module.eth.Contract, module.gasPrice);
             Token.methods.balanceOf(address).call().then((balance) => {
                 resolve({currency, balance, location});
             }).catch((error) => {
@@ -134,7 +134,7 @@ export default class BalanceComponent {
 
     getPlatformDeposit(address, currency, location) {
         return new Promise((resolve) => {
-            const Deposit = getDepositContract(module.eth.Contract);
+            const Deposit = getDepositContract(module.eth.Contract, module.gasPrice);
             Deposit.methods.balanceOfPlayer(address).call().then((balance) => {
                 resolve({currency, balance, location});
             }).catch((error) => {
@@ -146,7 +146,7 @@ export default class BalanceComponent {
 
     getGameSessionLockedFunds(address, currency, location) {
         return new Promise((resolve) => {
-            const Deposit = getDepositContract(module.eth.Contract);
+            const Deposit = getDepositContract(module.eth.Contract, module.gasPrice);
             Deposit.methods.playerLockedFunds(address).call().then((balance) => {
                 resolve({currency, balance, location});
             }).catch((error) => {

@@ -21,23 +21,19 @@ export function getSubscriptionEtherABI() {
     return contractsConfiguration.SubscriptionWithEther.abi;
 }
 
-function getGasPrice() {
-    return ETHConfiguration.gasPrice;
-}
-
 function getContractOwnerAddress() {
     const { AccountAddress } = ETHConfiguration;
 
     return AccountAddress.contractsOwner;
 }
 
-export function getSubscriptionContract(Contract) {
+export function getSubscriptionContract(Contract, gasPrice) {
     return new Contract(
         getSubscriptionEtherABI(),
         getSubscriptionEtherAddress(),
         {
             from: getContractOwnerAddress(), // default 'from' address
-            gasPrice: getGasPrice(),
+            gasPrice,
             gas: 1000000 // gas limit - The maximum gas provided for a transaction
         }
     );

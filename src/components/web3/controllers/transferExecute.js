@@ -2,7 +2,7 @@ import { getTokenContract } from '../contracts/token';
 import { getDepositContract } from '../contracts/deposit';
 import { getContractOwnerAddress } from '../contracts/owner';
 import { getGameAddress, getGameContract } from '../contracts/game';
-import { BigNumber } from 'bignumber.js';
+import BN from 'bn.js';
 import { getCommonTransactionResponse } from '../responses';
 import { notifyTransfersInProgress } from './transfer';
 
@@ -19,7 +19,7 @@ export default class TransferExecuteController {
 
     async transferToGame({request}, fromBlock) {
         const { userId } = request;
-        const Deposit = getDepositContract(module.eth.Contract);
+        const Deposit = getDepositContract(module.eth.Contract, module.gasPrice);
 
         const contract = Deposit.methods.transferToGame(userId, getGameAddress()).send({ from: getContractOwnerAddress() });
         this.getContractEvents(contract, TRANSFER_TO_GAME_TRANSACTION, userId, fromBlock);
@@ -36,9 +36,9 @@ export default class TransferExecuteController {
     async topUpTokens({request}, fromBlock) {
 
         const { userId, amount} = request;
-        const Token = getTokenContract(module.eth.Contract);
+        const Token = getTokenContract(module.eth.Contract, module.gasPrice);
+        const contract = Token.methods.transfer(userId, new BN(amount)).send({ from: getContractOwnerAddress() });
 
-        const contract = Token.methods.transfer(userId, new BigNumber(amount)).send({ from: getContractOwnerAddress() });
         this.getContractEvents(contract, TOP_UP_TOKENS_TRANSACTION, userId, fromBlock);
     }
 

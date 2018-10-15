@@ -29,21 +29,21 @@ export default class TransferListenerController {
 
         switch (type) {
             case DEPOSIT_TRANSACTION:
-                contract = getTokenContract(module.eth.Contract);
+                contract = getTokenContract(module.eth.Contract, module.gasPrice);
                 return contract.events.Transfer({
                     filter: { to: getDepositAddress() },
                     fromBlock,
                     toBlock
                 });
             case WITHDRAWAL_TRANSACTION:
-                contract = getTokenContract(module.eth.Contract);
+                contract = getTokenContract(module.eth.Contract, module.gasPrice);
                 return contract.events.Transfer({
                     filter: { from: getDepositAddress() },
                     fromBlock,
                     toBlock
                 });
             case SUBSCRIPTION_TRANSACTION:
-                contract = getSubscriptionContract(module.eth.Contract);
+                contract = getSubscriptionContract(module.eth.Contract, module.gasPrice);
                 return contract.events.newSubscription({
                     filter: {},
                     fromBlock,
