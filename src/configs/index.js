@@ -1,4 +1,6 @@
 import _ from 'lodash';
+// import APP_CONFIG from '../../configs/config.json';
+// import APP_CONTRACTS from '../../configs/contracts.json';
 
 /*eslint-disable */
 const { server, ETH } = APP_CONFIG;

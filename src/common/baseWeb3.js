@@ -1,6 +1,5 @@
 import Web3Service from 'communicationServices/web3';
 import EventBus from 'common/EventBus';
-import { ETHConfiguration } from 'configs/';
 
 const IPC_CONNECTION_CLOSED = 'Error: IPC socket connection closed';
 const IPC_COULD_NOT_CONNECT = 'Error: CONNECTION ERROR: Couldn\'t connect to node on IPC.';
@@ -69,7 +68,7 @@ export default class BaseWeb3 {
     }
 
     get gasPrice() {
-        return gasPrice || ETHConfiguration.gasPrice;
+        return gasPrice;
     }
 
     get eth() {

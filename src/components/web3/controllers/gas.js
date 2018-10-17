@@ -1,12 +1,13 @@
 import BN from 'bn.js';
 import _ from 'lodash';
 import Web3 from 'web3';
+import { ETHConfiguration } from 'configs/';
 
 let module = null;
-const SAMPLE_SIZE = 1000;
+const SAMPLE_SIZE = 50;
 const ALLOWED_WAIT = 60;
-const PROBABILITY = 95;
-const RECALCULATE_GAS_PRICE_PER_BLOCKS = 1000;
+const PROBABILITY = ETHConfiguration.gasPriceProbability;
+const RECALCULATE_GAS_PRICE_PER_BLOCKS = ETHConfiguration.recalculateGasPricePerBlocks;
 const web3 = new Web3('https://mainnet.infura.io');
 let gasPriceFromBlock = 0;
 
@@ -14,29 +15,33 @@ export default class GasController {
 
     constructor(baseModule) {
         module = baseModule;
+        web3.eth.getBlock('latest').then((latest) => {
+            this.getGasPrice(latest.number);
+        });
     }
-//return promise all
+
     async getAvgBlockTime(sampleSize = SAMPLE_SIZE) {
         return new Promise(async (resolve) => {
             const latest = await web3.eth.getBlock('latest');
             const oldest = await web3.eth.getBlock(latest.number - sampleSize);
 
-            resolve((latest.timestamp - oldest.timestamp) / SAMPLE_SIZE);
+            resolve({avgBlockTime: (latest.timestamp - oldest.timestamp) / SAMPLE_SIZE, latest});
         });
 
     }
 
-    getBlocks(sampleSize = SAMPLE_SIZE) {
-        return new Promise(async (resolve) => {
+    getBlocks(sampleSize = SAMPLE_SIZE, latest) {
+        return new Promise((resolve) => {
             const blocks = [];
-            const latest = await web3.eth.getBlock('latest', true);
 
             blocks.push(latest);
             for (let i = 0; i < sampleSize; i++) {
-                blocks.push(await web3.eth.getBlock(latest.number - i, true));
+                blocks.push(web3.eth.getBlock(latest.number - i, true));
             }
 
-            resolve(blocks);
+            Promise.all(blocks).then((data) => {
+                resolve(data);
+            });
         });
     }
 
@@ -119,13 +124,13 @@ export default class GasController {
 
     async getGasPrice(currentBlock) {
 
-        if (currentBlock - gasPriceFromBlock > RECALCULATE_GAS_PRICE_PER_BLOCKS) {
+        if (Math.abs(currentBlock - gasPriceFromBlock) > RECALCULATE_GAS_PRICE_PER_BLOCKS) {
             gasPriceFromBlock = currentBlock;
-            const avgBlockTime = await this.getAvgBlockTime();
+            const { avgBlockTime, latest} = await this.getAvgBlockTime();
             console.info('AVG BLOCK TIME:', avgBlockTime);
             const waitBlocks = parseInt(Math.ceil(ALLOWED_WAIT / avgBlockTime));
             console.log('WAIT BLOCKS:', waitBlocks);
-            const blocks = await this.getBlocks();
+            const blocks = await this.getBlocks(SAMPLE_SIZE, latest);
             const rawData = this.getRawMinerData(blocks);
             const minerData = this.aggregateMinerData(rawData);
             const probabilities = this.computeProbabilities(minerData, waitBlocks, SAMPLE_SIZE);

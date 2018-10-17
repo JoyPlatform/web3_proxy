@@ -9,7 +9,8 @@
     "gethProviderType":"ipc",
     "gethProviderSource":"PATH/TO/geth.ipc",
     "sufficientConfirmations": 5,
-    "gasPrice": "8000000000",
+    "gasPriceProbability": 80,
+    "recalculateGasPricePerBlocks": 51,
 
     "contractOwnerPassword": "test",
     "AccountAddress": {
