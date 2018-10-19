@@ -65,9 +65,11 @@ export default class WebSocketServer {
         try {
             const request = JSON.parse(clientRequest);
             if (CheckSchema(request)) {
-                const { command } = request;
+                const { command, opId } = request;
                 const response = {wsclient: this, data: {command: `${command}_Res`, status: RESPONSE_STATUS_ERROR}};
-
+                if (opId) {
+                    response.data.opId = opId;
+                }
                 // _.set(request, 'data.clientId', this.id || 0);
                 EventBus.emit('onMessage', request, response);
             } else {
