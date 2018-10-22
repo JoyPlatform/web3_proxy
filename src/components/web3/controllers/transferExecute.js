@@ -17,32 +17,32 @@ export default class TransferExecuteController {
         module = baseModule;
     }
 
-    async transferToGame({request}, fromBlock) {
+    async transferToGame({request, response}, fromBlock) {
         const { userId } = request;
         const Deposit = getDepositContract(module.eth.Contract, module.gasPrice);
 
         const contract = Deposit.methods.transferToGame(userId, getGameAddress()).send({ from: getContractOwnerAddress() });
-        this.getContractEvents(contract, TRANSFER_TO_GAME_TRANSACTION, userId, fromBlock);
+        this.getContractEvents(contract, TRANSFER_TO_GAME_TRANSACTION, userId, fromBlock, response.data.opId);
     }
 
-    async transferFromGame({request}, fromBlock) {
+    async transferFromGame({request, response}, fromBlock) {
         const { userId, balance, gameProcessHash } = request;
         const Game = getGameContract(module.eth.Contract);
 
         const contract = Game.methods.responseFromWS(userId, balance, gameProcessHash).send({ from: getContractOwnerAddress() });
-        this.getContractEvents(contract, TRANSFER_FROM_GAME_TRANSACTION, userId, fromBlock);
+        this.getContractEvents(contract, TRANSFER_FROM_GAME_TRANSACTION, userId, fromBlock, response.data.opId);
     }
 
-    async topUpTokens({request}, fromBlock) {
+    async topUpTokens({request, response}, fromBlock) {
 
         const { userId, amount} = request;
         const Token = getTokenContract(module.eth.Contract, module.gasPrice);
         const contract = Token.methods.transfer(userId, new BN(amount)).send({ from: getContractOwnerAddress() });
 
-        this.getContractEvents(contract, TOP_UP_TOKENS_TRANSACTION, userId, fromBlock);
+        this.getContractEvents(contract, TOP_UP_TOKENS_TRANSACTION, userId, fromBlock, response.data.opId);
     }
 
-    getContractEvents(executedContract, transactionType, userId, fromBlock) {
+    getContractEvents(executedContract, transactionType, userId, fromBlock, opId) {
         executedContract.once('transactionHash', (transactionHash) => {
             const transaction = {
                 transactionHash,
@@ -50,6 +50,7 @@ export default class TransferExecuteController {
                 [Symbol.for('userId')]: userId,
                 [Symbol.for('blocksChecked')]: 0,
                 [Symbol.for('checking')]: false,
+                [Symbol.for('opId')]: opId,
                 blockNumber: fromBlock,
                 status: 1
             };
