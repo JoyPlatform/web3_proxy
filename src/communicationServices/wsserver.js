@@ -66,11 +66,8 @@ export default class WebSocketServer {
             const request = JSON.parse(clientRequest);
             if (CheckSchema(request)) {
                 const { command, opId } = request;
-                const response = {wsclient: this, data: {command: `${command}_Res`, status: RESPONSE_STATUS_ERROR}};
-                if (opId) {
-                    response.data.opId = opId;
-                }
-                // _.set(request, 'data.clientId', this.id || 0);
+                const response = {wsclient: this, data: {command: `${command}_Res`, status: RESPONSE_STATUS_ERROR, opId: opId || -1}};
+
                 EventBus.emit('onMessage', request, response);
             } else {
                 const errorResponse = {status: RESPONSE_STATUS_ERROR, error: ERROR_INAPPROPRIATE_REQUEST_MESSAGE_FORMAT, requested: clientRequest};

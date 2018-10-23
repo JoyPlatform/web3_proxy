@@ -176,7 +176,8 @@ export function notifyTransfersInProgress(transaction) {
         data: {
             status: Number(transaction.status) ? RESPONSE_STATUS_SUCCESS : RESPONSE_STATUS_ERROR,
             command: WEB3_ACTION_NOTIFICATION_TRANSFER,
-            response: transaction[Symbol.for('status')]
+            response: transaction[Symbol.for('status')],
+            opId: transaction[Symbol.for('opId')] || -1
         }
     };
 
