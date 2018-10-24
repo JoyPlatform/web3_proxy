@@ -2,6 +2,7 @@ import EventBus from 'common/EventBus';
 import BaseWeb3 from 'common/baseWeb3';
 import Web3Components from 'components/web3';
 import { WEB3_CONNECTION_TO_ETH } from 'constants/messageActions';
+import { getUserDoesNotExistResponse } from 'components/web3/responses/';
 
 const {
     AuthComponent,
@@ -67,13 +68,15 @@ export default class Web3 extends BaseWeb3 {
         });
 
         EventBus.on('Web3Authentication', this.authComponent::this.authComponent.isAddressExist);
-        EventBus.on('Web3Balances', this.balanceComponent::this.balanceComponent.getBalances);
+        EventBus.on('Web3Balances', this.commonRequestPreparation.bind(this, this.balanceComponent::this.balanceComponent.getBalances));
         EventBus.on('Web3GetConfigurationData', this.configurationController::this.configurationController.getBaseConfiguration);
         EventBus.on('Web3GetTransfersInProgress', this.transferController::this.transferController.getTransfersInProgress);
         EventBus.on('Web3TransactionStatus', this.transferController::this.transferController.getTransactionStatus);
+
         EventBus.on('Web3TopUpTokens', this.addToOwnerTransactionsList.bind(this, this.transferExecuteController, 'topUpTokens'));
         EventBus.on('Web3TransferToGame', this.addToOwnerTransactionsList.bind(this, this.transferExecuteController, 'transferToGame'));
         EventBus.on('Web3TransferFromGame', this.addToOwnerTransactionsList.bind(this, this.transferExecuteController, 'transferFromGame'));
+
         EventBus.on('Web3NewBlockHeaders', ::this.onNewBlockHeaders);
     }
 
@@ -104,8 +107,18 @@ export default class Web3 extends BaseWeb3 {
         this.transferController.forceCheckFailedTransactions();
     }
 
-    addToOwnerTransactionsList(controller, method, params) {
-        this.ownerController.addToOwnerTransactionsList(controller, method, params);
+    async commonRequestPreparation(fnExec, params) {
+        const { request, response } = params;
+        const result = await this.validateUserId(request, response);
+
+        result && fnExec(params);
+    }
+
+    async addToOwnerTransactionsList(controller, method, params) {
+        const { request, response } = params;
+        const result = await this.validateUserId(request, response);
+
+        result && this.ownerController.addToOwnerTransactionsList(controller, method, params);
     }
 
     onExecutedOwnerTransaction() {
@@ -122,6 +135,19 @@ export default class Web3 extends BaseWeb3 {
 
     sendResponseToClients(response, forAll) {
         EventBus.emit('sendResponseToClients', response, forAll);
+    }
+
+    validateUserId(request, response) {
+        const { userId } = request;
+        return new Promise((resolve) => {
+            if (this.utils.isAddress(userId)) {
+                resolve(true);
+            } else {
+                response.data.response = getUserDoesNotExistResponse(userId);
+                this.sendResponseToClient(response);
+                resolve(false);
+            }
+        });
     }
 
 }

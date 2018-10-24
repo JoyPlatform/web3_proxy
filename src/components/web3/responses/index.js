@@ -28,3 +28,7 @@ export function getCommonTransactionResponse(transaction) {
         userId: transaction[Symbol.for('userId')]
     };
 }
+
+export function getUserDoesNotExistResponse(userId) {
+    return { userId, exist: false };
+}
