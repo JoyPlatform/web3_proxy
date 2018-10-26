@@ -41,6 +41,9 @@ export default class GasController {
 
             Promise.all(blocks).then((data) => {
                 resolve(data);
+            }).catch(function(err) {
+                console.error(err);
+                resolve(false);
             });
         });
     }
@@ -131,6 +134,10 @@ export default class GasController {
             const waitBlocks = parseInt(Math.ceil(ALLOWED_WAIT / avgBlockTime));
             console.log('WAIT BLOCKS:', waitBlocks);
             const blocks = await this.getBlocks(SAMPLE_SIZE, latest);
+            if (!blocks) {
+                gasPriceFromBlock = 1;
+                return false;
+            }
             const rawData = this.getRawMinerData(blocks);
             const minerData = this.aggregateMinerData(rawData);
             const probabilities = this.computeProbabilities(minerData, waitBlocks, SAMPLE_SIZE);

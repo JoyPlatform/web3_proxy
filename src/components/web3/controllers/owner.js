@@ -39,14 +39,12 @@ export default class OwnerController {
                     console.log('unlockOwnerAccount', e);
                 });
 
-            for (let i = 0; i < 100; i++ ) {
-                if (i < waitForUnlockRequests.length) {
-                    transactionsAmount++;
-                    const { params, controller, method } = waitForUnlockRequests.shift();
-                    controller[method](params, module.currentBlockNumber);
-                } else {
-                    break;
-                }
+            const transactionsLength = waitForUnlockRequests.length;
+
+            for (let i = 0; i < (transactionsLength > 100 ? 100 : transactionsLength); i++ ) {
+                transactionsAmount++;
+                const { params, controller, method } = waitForUnlockRequests.shift();
+                controller[method](params, module.currentBlockNumber);
             }
         }
     }

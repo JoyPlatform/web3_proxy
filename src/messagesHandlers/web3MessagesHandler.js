@@ -7,7 +7,8 @@ import {
     CLIENT_ACTION_TOP_UP_TOKENS,
     CLIENT_ACTION_TRANSFER_FROM_GAME,
     CLIENT_ACTION_TRANSFER_TO_GAME,
-    CLIENT_ACTION_GET_TRANSACTION_STATUS
+    CLIENT_ACTION_GET_TRANSACTION_STATUS,
+    CLIENT_ACTION_GET_PAST_SUBSCRIPTION_EVENTS
 } from 'constants/messageActions';
 
 export default function ethMessagesHandler({method, request, response}) {
@@ -35,6 +36,9 @@ export default function ethMessagesHandler({method, request, response}) {
             break;
         case CLIENT_ACTION_GET_TRANSACTION_STATUS:
             EventBus.emit('Web3TransactionStatus', {request, response});
+            break;
+        case CLIENT_ACTION_GET_PAST_SUBSCRIPTION_EVENTS:
+            EventBus.emit('Web3GetPastSubscriptionEvents', {request, response});
             break;
         default:
             EventBus.emit('incorrectRequestedCommand', {response, command: method});

@@ -12,7 +12,8 @@ const {
     TransferExecuteController,
     OwnerController,
     TransferController,
-    GasController
+    GasController,
+    SubscriptionController
 } = Web3Components;
 
 export default class Web3 extends BaseWeb3 {
@@ -42,6 +43,7 @@ export default class Web3 extends BaseWeb3 {
     }
 
     initComponents() {
+        console.log('initComponents');
         this.authComponent = new AuthComponent(this);
         this.balanceComponent = new BalanceComponent(this);
         this.configurationController = new ConfigurationController(this);
@@ -49,6 +51,7 @@ export default class Web3 extends BaseWeb3 {
         this.transferListenerController = new TransferListenerController(this);
         this.transferExecuteController = new TransferExecuteController(this);
         this.ownerController = new OwnerController(this);
+        this.subscriptionController = new SubscriptionController(this);
     }
 
     initEventListeners() {
@@ -72,6 +75,7 @@ export default class Web3 extends BaseWeb3 {
         EventBus.on('Web3GetConfigurationData', this.configurationController::this.configurationController.getBaseConfiguration);
         EventBus.on('Web3GetTransfersInProgress', this.transferController::this.transferController.getTransfersInProgress);
         EventBus.on('Web3TransactionStatus', this.transferController::this.transferController.getTransactionStatus);
+        EventBus.on('Web3GetPastSubscriptionEvents', this.subscriptionController::this.subscriptionController.getPlayerPastSubscriptionEvents);
 
         EventBus.on('Web3TopUpTokens', this.addToOwnerTransactionsList.bind(this, this.transferExecuteController, 'topUpTokens'));
         EventBus.on('Web3TransferToGame', this.addToOwnerTransactionsList.bind(this, this.transferExecuteController, 'transferToGame'));
@@ -81,9 +85,9 @@ export default class Web3 extends BaseWeb3 {
     }
 
     onNewBlockHeaders(blockNumber) {
+        console.log('onNewBlockHeaders', blockNumber);
         this.transferController.checkTransactions(blockNumber);
         this.gasController.getGasPrice(blockNumber);
-        console.info('onNewBlockHeaders', blockNumber);
         console.info('Transactions in Progress: ', Object.keys(this.transferController.transactions).length);
     }
 

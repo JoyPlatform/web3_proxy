@@ -22,7 +22,13 @@ export default class BalanceComponent {
             response.data.status = RESPONSE_STATUS_SUCCESS;
         }
 
-        response.data.response = { balances, userId } ;
+        const preparedBalance = {};
+
+        balances.forEach(({currency, balance, location}) => {
+            _.set(preparedBalance, `${currency}.${location}`, balance);
+        });
+
+        response.data.response = { balances: preparedBalance, userId };
 
         module.sendResponseToClient(response);
     }

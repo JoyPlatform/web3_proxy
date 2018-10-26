@@ -87,14 +87,15 @@ console.info('getTransfersInProgress');
                 transaction[Symbol.for('blocksChecked')] = 1;
                 module.updateTransactionMined(Object.assign(transaction, {...transactionReceipt}));
             } else {
-                transaction[Symbol.for('blocksChecked')] = number - blockNumber;
+                transaction[Symbol.for('blocksChecked')] = Math.abs(number - blockNumber);
             }
 
             transaction[Symbol.for('status')] = getCommonTransactionResponse(transaction);
             notifyTransfersInProgress(transaction);
 
-            if (transaction[Symbol.for('blocksChecked')] === sufficientConfirmations) {
+            if (transaction[Symbol.for('blocksChecked')] >= sufficientConfirmations) {
                 console.info('TRANSACTION COMPLETE');
+                transaction[Symbol.for('blocksChecked')] = sufficientConfirmations;
                 module.removeTransaction(transaction);
             } else {
                 transaction[Symbol.for('checking')] = false;

@@ -5,7 +5,7 @@ import {
     CLIENT_ACTION_GET_CONFIGURATION_DATA, CLIENT_ACTION_TOP_UP_TOKENS,
     CLIENT_ACTION_TRANSFER_TO_GAME, CLIENT_ACTION_TRANSFER_FROM_GAME,
     CLIENT_ACTION_GET_WEB3_PROXY_VERSION, CLIENT_ACTION_GET_TRANSFERS_IN_PROGRESS,
-    CLIENT_ACTION_GET_TRANSACTION_STATUS
+    CLIENT_ACTION_GET_TRANSACTION_STATUS, CLIENT_ACTION_GET_PAST_SUBSCRIPTION_EVENTS
 } from 'constants/messageActions';
 import {
     getAuthSchema,
@@ -38,6 +38,7 @@ export default function checkSchema(data) {
             return getUsersSchemaValidator(data);
         case CLIENT_ACTION_AUTH_USER:
         case CLIENT_ACTION_TRANSFER_TO_GAME:
+        case CLIENT_ACTION_GET_PAST_SUBSCRIPTION_EVENTS:
             return getAuthSchemaValidator(data);
         case CLIENT_ACTION_GET_BALANCES:
             return getBalancesSchemaValidator(data);
