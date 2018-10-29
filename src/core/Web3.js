@@ -72,10 +72,10 @@ export default class Web3 extends BaseWeb3 {
 
         EventBus.on('Web3Authentication', this.authComponent::this.authComponent.isAddressExist);
         EventBus.on('Web3Balances', this.commonRequestPreparation.bind(this, this.balanceComponent::this.balanceComponent.getBalances));
+        EventBus.on('Web3GetPastSubscriptionEvents', this.commonRequestPreparation.bind(this, this.subscriptionController::this.subscriptionController.getPlayerPastSubscriptionEvents));
         EventBus.on('Web3GetConfigurationData', this.configurationController::this.configurationController.getBaseConfiguration);
         EventBus.on('Web3GetTransfersInProgress', this.transferController::this.transferController.getTransfersInProgress);
         EventBus.on('Web3TransactionStatus', this.transferController::this.transferController.getTransactionStatus);
-        EventBus.on('Web3GetPastSubscriptionEvents', this.subscriptionController::this.subscriptionController.getPlayerPastSubscriptionEvents);
 
         EventBus.on('Web3TopUpTokens', this.addToOwnerTransactionsList.bind(this, this.transferExecuteController, 'topUpTokens'));
         EventBus.on('Web3TransferToGame', this.addToOwnerTransactionsList.bind(this, this.transferExecuteController, 'transferToGame'));
