@@ -7,9 +7,9 @@ import _ from 'lodash';
 
 let module = null;
 
-const DEPOSIT_TRANSACTION = 'DEPOSIT_TRANSACTION';
-const WITHDRAWAL_TRANSACTION = 'WITHDRAWAL_TRANSACTION';
-const SUBSCRIPTION_TRANSACTION = 'SUBSCRIPTION_TRANSACTION';
+export const DEPOSIT_TRANSACTION = 'DEPOSIT_TRANSACTION';
+export const WITHDRAWAL_TRANSACTION = 'WITHDRAWAL_TRANSACTION';
+export const SUBSCRIPTION_TRANSACTION = 'SUBSCRIPTION_TRANSACTION';
 
 // getting notification about transactions from MetaMask
 export default class TransferListenerController {

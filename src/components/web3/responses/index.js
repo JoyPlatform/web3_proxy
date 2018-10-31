@@ -1,5 +1,7 @@
 import { ERROR_WEB3_GET_BALANCE, ERROR_WEB3_CURRENCY_DOES_NOT_EXIST, ERROR_WEB3_LOCATION_DOES_NOT_EXIST } from 'constants/errors';
 import { ETHConfiguration } from 'configs/';
+import { SUBSCRIPTION_TRANSACTION } from '../controllers/transferListener';
+import _ from 'lodash';
 
 const { sufficientConfirmations } = ETHConfiguration;
 
@@ -20,13 +22,21 @@ export function getETHBalanceLocationDoesNotExistResponse({currency, location}) 
 }
 
 export function getCommonTransactionResponse(transaction) {
-    return {
+
+    const response = {
         event: transaction[Symbol.for('transactionType')],
         confNum: transaction[Symbol.for('blocksChecked')],
         confMax: sufficientConfirmations,
         transactionHash: transaction.transactionHash,
         userId: transaction[Symbol.for('userId')]
     };
+
+    if (transaction[Symbol.for('transactionType')] === SUBSCRIPTION_TRANSACTION) {
+        response['timepoint'] = _.get(transaction, 'returnValues.timepoint', 0);
+        response['amountOfTime'] = _.get(transaction, 'returnValues.amountOfTime', 0);
+    }
+
+    return response;
 }
 
 export function getUserDoesNotExistResponse(userId) {

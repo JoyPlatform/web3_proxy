@@ -20,7 +20,6 @@ export default class SubscriptionController {
         });
 
         subscriptions.forEach((subscription) => {
-            console.log(subscription);
             const { timepoint, amountOfTime } = subscription.returnValues;
             data.push({ timepoint, amountOfTime });
         });
