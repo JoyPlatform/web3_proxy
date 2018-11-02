@@ -7,6 +7,7 @@ import TransferExecuteController from './web3/controllers/transferExecute';
 import OwnerController from './web3/controllers/owner';
 import GasController from './web3/controllers/gas';
 import SubscriptionController from './web3/controllers/subscription';
+import GameController from './web3/controllers/game';
 
 export default {
     AuthComponent,
@@ -17,5 +18,6 @@ export default {
     TransferExecuteController,
     OwnerController,
     GasController,
-    SubscriptionController
+    SubscriptionController,
+    GameController
 };

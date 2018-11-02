@@ -13,7 +13,8 @@ const {
     OwnerController,
     TransferController,
     GasController,
-    SubscriptionController
+    SubscriptionController,
+    GameController
 } = Web3Components;
 
 export default class Web3 extends BaseWeb3 {
@@ -52,6 +53,7 @@ export default class Web3 extends BaseWeb3 {
         this.transferExecuteController = new TransferExecuteController(this);
         this.ownerController = new OwnerController(this);
         this.subscriptionController = new SubscriptionController(this);
+        this.gameController = new GameController(this);
     }
 
     initEventListeners() {
@@ -73,6 +75,7 @@ export default class Web3 extends BaseWeb3 {
         EventBus.on('Web3Authentication', this.authComponent::this.authComponent.isAddressExist);
         EventBus.on('Web3Balances', this.commonRequestPreparation.bind(this, this.balanceComponent::this.balanceComponent.getBalances));
         EventBus.on('Web3GetPastSubscriptionEvents', this.commonRequestPreparation.bind(this, this.subscriptionController::this.subscriptionController.getPlayerPastSubscriptionEvents));
+        EventBus.on('Web3GetGameOpenSessions', this.commonRequestPreparation.bind(this, this.gameController::this.gameController.getOpenSessions));
         EventBus.on('Web3GetConfigurationData', this.configurationController::this.configurationController.getBaseConfiguration);
         EventBus.on('Web3GetTransfersInProgress', this.transferController::this.transferController.getTransfersInProgress);
         EventBus.on('Web3TransactionStatus', this.transferController::this.transferController.getTransactionStatus);
