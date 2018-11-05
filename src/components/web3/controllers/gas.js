@@ -52,7 +52,7 @@ export default class GasController {
         console.info('getRawMinerData');
         for (let i = 0; i < blocks.length; i++ ) {
             const block = blocks[i];
-            for (let j = 0; j < block.transactions.length; j++ ) {
+            for (let j = 0; j < _.get(block, 'transactions.length', 0); j++ ) {
                 const transaction = block.transactions[j];
 
                 if (transaction.gasPrice) {

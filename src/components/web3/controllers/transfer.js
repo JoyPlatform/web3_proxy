@@ -158,6 +158,18 @@ console.info('getTransfersInProgress');
         return transactionsList;
     }
 
+    getTransactionsByUserId(userId) {
+        const transactions = [];
+
+        _.forEach(this.transactions, (transaction) => {
+            if (transaction[Symbol.for('userId')] === userId) {
+                transactions.push(transaction[Symbol.for('status')]);
+            }
+        });
+
+        return transactions;
+    }
+
 }
 
 function getTransactionReceipt(transactionId) {

@@ -28,6 +28,9 @@ export const getAuthSchema = {
                 'userId': {
                     'type': 'string',
                     'minLength': 1
+                },
+                'withState': {
+                    'type': 'boolean'
                 }
             }
         }

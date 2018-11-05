@@ -9,10 +9,15 @@ export default class AuthComponent {
     }
 
     isAddressExist({request, callbackEmit, response}) {
-        const { userId } = request;
+        const { userId, withState } = request;
 
         response.userExist = module.utils.isAddress(userId);
         response.data.response = {userId, exist: response.userExist};
+
+        if (response.userExist && withState) {
+            response.data.response.transactions = module.transferController.getTransactionsByUserId(userId);
+        }
+
         response.data.status = RESPONSE_STATUS_SUCCESS;
         response.userId = userId;
         if (callbackEmit) {
