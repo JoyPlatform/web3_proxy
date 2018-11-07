@@ -58,14 +58,19 @@ export default class TransferListenerController {
 
         const transferPending = this.getTransferByType(type, fromBlock, 'pending');
 
-        transferPending.on('data', (transaction, error) => {
+        transferPending.on('data', async (transaction, error) => {
+
             console.info(`On Transfer PENDING ${type}`);
             if (!error) {
                 let userIdKey = getUserIdKey(type);
+                const userId = _.get(transaction, `returnValues.${userIdKey}`);
+                const balances = [{currency: 'JoyToken', locations: ['world', 'platform', 'gameSession']}];
+                const balancesState = await module.balanceComponent.getAllBalances({balances, userId});
 
                 transaction[Symbol.for('blocksChecked')] = 0;
                 transaction[Symbol.for('transactionType')] = type;
-                transaction[Symbol.for('userId')] = _.get(transaction, `returnValues.${userIdKey}`);
+                transaction[Symbol.for('userId')] = userId;
+                transaction[Symbol.for('balance')] = balancesState;
                 transaction[Symbol.for('status')] = getCommonTransactionResponse(transaction);
                 transaction[Symbol.for('checking')] = false;
                 transaction.status = 1;

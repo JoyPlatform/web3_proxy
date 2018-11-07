@@ -28,7 +28,8 @@ export function getCommonTransactionResponse(transaction) {
         confNum: transaction[Symbol.for('blocksChecked')],
         confMax: sufficientConfirmations,
         transactionHash: transaction.transactionHash,
-        userId: transaction[Symbol.for('userId')]
+        userId: transaction[Symbol.for('userId')],
+        balance: transaction[Symbol.for('balance')]
     };
 
     if (transaction[Symbol.for('transactionType')] === SUBSCRIPTION_TRANSACTION) {

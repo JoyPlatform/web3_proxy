@@ -43,7 +43,10 @@ export default class TransferExecuteController {
     }
 
     getContractEvents(executedContract, transactionType, userId, fromBlock, opId) {
-        executedContract.once('transactionHash', (transactionHash) => {
+        executedContract.once('transactionHash', async (transactionHash) => {
+            const balances = [{currency: 'JoyToken', locations: ['world', 'platform', 'gameSession']}];
+            const balancesState = await module.balanceComponent.getAllBalances({balances, userId});
+
             const transaction = {
                 transactionHash,
                 [Symbol.for('transactionType')]: transactionType,
@@ -51,6 +54,7 @@ export default class TransferExecuteController {
                 [Symbol.for('blocksChecked')]: 0,
                 [Symbol.for('checking')]: false,
                 [Symbol.for('opId')]: opId,
+                [Symbol.for('balance')]: balancesState,
                 blockNumber: fromBlock,
                 status: 1
             };
